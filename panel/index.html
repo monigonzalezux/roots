@@ -306,6 +306,20 @@ textarea.inp{height:auto;min-height:72px;padding:10px 12px;resize:vertical}
 .bz-row.bz-h span{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
 .bz-row .inp{text-align:right}
 .hist b{color:var(--ink);font-weight:700}
+.segbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+.segctl{display:inline-flex;padding:4px;gap:4px;background:var(--card);border:1px solid var(--line-2);border-radius:16px}
+.segctl button{min-height:44px;padding:0 20px;border:0;border-radius:12px;background:none;font-weight:800;font-size:15px;color:var(--musgo);cursor:pointer;display:inline-flex;gap:8px;align-items:center;justify-content:center;white-space:nowrap}
+.segctl button:hover{background:rgba(81,81,37,.07)}
+.segctl button[aria-pressed="true"]{background:var(--musgo);color:var(--hueso)}
+.segctl .n{font-size:12px;font-weight:800;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:var(--hueso-2);color:var(--musgo);display:inline-grid;place-items:center;font-variant-numeric:tabular-nums}
+.segctl button[aria-pressed="true"] .n{background:rgba(237,230,214,.22);color:var(--hueso)}
+.tbar{display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.tbar .caps{margin-right:8px;color:var(--mute);font-size:11px}
+.tchip{min-height:36px;padding:0 12px;border-radius:99px;border:0;background:none;font-weight:700;font-size:13.5px;color:var(--mute);cursor:pointer;white-space:nowrap}
+.tchip:hover{background:rgba(81,81,37,.07);color:var(--musgo)}
+.tchip[aria-pressed="true"]{background:rgba(81,81,37,.13);color:var(--musgo)}
+.biz-tag{background:#FDE9B5;color:#6B4A00}
+@media (max-width:560px){.segbar .segctl{display:flex;width:100%}.segctl button{flex:1;padding:0 8px;font-size:14px}.segbar .btn{width:100%}}
 @media (max-width:560px){.srow{grid-template-columns:96px minmax(0,1fr) 40px;gap:8px;font-size:13px}.bz-row{grid-template-columns:minmax(0,1fr) 80px 80px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -388,7 +402,7 @@ function waText(o){var n=firstName(o.customer.name), id=o.id, t=fmt(o.total), st
 function waLink(o){var d=digits(o.customer.phone); if(d.length===8)d="506"+d; return d.length>=11?"https://wa.me/"+d+"?text="+encodeURIComponent(waText(o)):""}
 
 // ─────────── state ───────────
-var S={sb:null,session:null,downloads:{save:saveFile},admin:false,ready:false,authView:"login",authMsg:"",authErr:"",chan:null,poll:null,vperiod:lsGet("roots.vperiod")||"mes",seg:lsGet("roots.seg")||"todo",gperiod:lsGet("roots.gperiod")||"mes",expenses:[],ownerNames:{},
+var S={sb:null,session:null,downloads:{save:saveFile},admin:false,ready:false,authView:"login",authMsg:"",authErr:"",chan:null,poll:null,pseg:lsGet("roots.pseg")||"todo",vperiod:lsGet("roots.vperiod")||"mes",seg:lsGet("roots.seg")||"todo",gperiod:lsGet("roots.gperiod")||"mes",expenses:[],ownerNames:{},
   config:null,orders:[],ordersLoaded:false,log:[],
   demo:false,demoOrders:null,
   period:lsGet("roots.period")||"mes", filter:"activos", q:"", selected:null, rejecting:false, receiptCache:{},
@@ -481,7 +495,7 @@ function resumen(){
   var a=stats(cur), b=stats(prev);
   var pend=all.filter(function(o){return stOf(o)==="por_verificar"}), pendSum=pend.reduce(function(x,o){return x+o.total},0);
   var toShip=all.filter(function(o){var s=stOf(o); return s==="pagado"||s==="preparando"}).length;
-  var head='<div class="head"><div><p class="caps">Resumen</p><h1 class="h1">¿Cómo va <em>Roots?</em></h1></div><div class="chips" role="group" aria-label="Período">'+PERIODS.map(function(p){return '<button type="button" class="chip" data-period="'+p[0]+'" aria-pressed="'+(S.period===p[0])+'">'+p[1]+'</button>'}).join("")+'</div></div>';
+  var head='<div class="head"><div><p class="caps">Resumen</p><h1 class="h1">¿Cómo va <em>Roots?</em></h1></div></div>'+timeChips("period",PERIODS,S.period);
   var alert=(pend.length||toShip)?'<div class="alertbar"><span>'+(pend.length?'<b>'+pend.length+(pend.length===1?' pago':' pagos')+' por verificar</b> · '+fmt(pendSum)+(toShip?' &nbsp;·&nbsp; ':''):'')+(toShip?'<b>'+toShip+' por preparar o enviar</b>':'')+'</span><a class="btn btn-sm btn-m" href="#pedidos" id="go-active">Ver pedidos</a></div>':'';
   if(!all.length&&!S.demo) return head+'<div class="card p-empty"><img src="'+IMG.frootMango+'" alt=""><h2 class="h2">Aquí van a aparecer tus ventas</h2><p>Cuando lleguen pedidos de la tienda los vas a ver aquí. Mientras tanto podés ver cómo se ve con datos de ejemplo.</p><button type="button" class="btn btn-m" id="demo-on">Ver con datos de ejemplo</button></div>';
   var kpis='<div class="kpis">'+
@@ -553,21 +567,23 @@ var FILTERS=[["activos","Activos"],["por_verificar","Por verificar"],["pagado","
 function filtered(){
   var q=S.q.trim().toLowerCase();
   return data().filter(function(o){var st=stOf(o);
+    if(!inSeg(o,S.pseg))return false;
     if(S.filter==="activos"&&(st==="entregado"||st==="rechazado"||st==="cancelado"))return false;
     if(S.filter!=="activos"&&S.filter!=="todos"&&st!==S.filter)return false;
     if(q){var c=o.customer, hay=(o.id+" "+c.name+" "+c.phone+" "+c.canton+" "+c.prov+" "+c.distrito).toLowerCase(); if(hay.indexOf(q)<0&&digits(c.phone).indexOf(digits(q)||"~")<0)return false}
     return true});
 }
 function pedidos(){
-  var all=data(), cnt=function(s){return all.filter(function(o){return stOf(o)===s}).length};
-  var head='<div class="head"><div><p class="caps">Pedidos</p><h1 class="h1">Pedidos <em>de la tienda.</em></h1></div><div style="display:flex;gap:8px;flex-wrap:wrap">'+(!S.demo?'<button type="button" class="btn btn-m" id="new-order">+ Pedido manual</button>':'')+(S.downloads&&all.length?'<button type="button" class="btn btn-o" id="csv">'+I.dl+'Descargar CSV</button>':'')+'</div></div>';
-  var tools='<div class="toolbar"><div class="chips" role="group" aria-label="Filtrar por estado">'+FILTERS.map(function(f){var n=f[0]==="activos"||f[0]==="todos"?"":' <span class="num" style="opacity:.75">'+cnt(f[0])+'</span>'; return '<button type="button" class="chip" data-filter="'+f[0]+'" aria-pressed="'+(S.filter===f[0])+'">'+f[1]+n+'</button>'}).join("")+'</div><div class="search">'+I.search+'<label class="sr" for="q">Buscar pedido</label><input id="q" class="inp" placeholder="N.º de pedido, nombre o teléfono" value="'+esc(S.q)+'"></div></div>';
+  var every=data(), all=every.filter(function(o){return inSeg(o,S.pseg)}), cnt=function(s){return all.filter(function(o){return stOf(o)===s}).length};
+  var segN={todo:every.length,directo:every.filter(function(o){return !isBiz(o)}).length,negocios:every.filter(isBiz).length};
+  var head='<div class="head"><div><p class="caps">Pedidos</p><h1 class="h1">Pedidos <em>y entregas.</em></h1></div><div style="display:flex;gap:8px;flex-wrap:wrap">'+(S.demo?'':S.pseg==="negocios"?'<button type="button" class="btn btn-m" id="new-biz">+ Venta a negocio</button>':'<button type="button" class="btn btn-m" id="new-order">+ Pedido manual</button>')+(S.downloads&&all.length?'<button type="button" class="btn btn-o" id="csv">'+I.dl+'Descargar CSV</button>':'')+'</div></div>';
+  var tools='<div class="segbar">'+segCtl("pseg",S.pseg,segN)+'</div><div class="toolbar"><div class="chips" role="group" aria-label="Filtrar por estado">'+FILTERS.map(function(f){var n=f[0]==="activos"||f[0]==="todos"?"":' <span class="num" style="opacity:.75">'+cnt(f[0])+'</span>'; return '<button type="button" class="chip" data-filter="'+f[0]+'" aria-pressed="'+(S.filter===f[0])+'">'+f[1]+n+'</button>'}).join("")+'</div><div class="search">'+I.search+'<label class="sr" for="q">Buscar pedido</label><input id="q" class="inp" placeholder="N.º de pedido, nombre o teléfono" value="'+esc(S.q)+'"></div></div>';
   var list=filtered(), body;
   if(!all.length) body='<div class="card p-empty"><img src="'+IMG.frootPina+'" alt=""><h2 class="h2">Todavía no hay pedidos</h2><p>Los pedidos que hagan en la tienda aparecen aquí con su comprobante de SINPE.</p><button type="button" class="btn btn-o" id="demo-on">Ver con datos de ejemplo</button></div>';
   else if(!list.length) body='<div class="card p-empty"><p>No hay pedidos con este filtro.</p></div>';
   else body='<div class="tbl-wrap resp"><table class="t"><thead><tr><th>Pedido</th><th>Cliente</th><th>Productos</th><th>Zona</th><th>Estado</th><th class="r">Total</th></tr></thead><tbody>'+list.map(function(o){
       var nw=!S.seen[o.id]&&stOf(o)==="por_verificar"?'<span class="newdot" title="Nuevo"></span>':'';
-      return '<tr class="click" data-o="'+esc(o.id)+'" tabindex="0"><td><b class="code">'+esc(o.id)+'</b>'+nw+'<div class="mute" style="font-size:12.5px">'+esc(ago(o.createdAt))+'</div></td><td class="who"><b>'+esc(o.customer.name)+'</b><span>'+esc(o.customer.phone||"")+' · '+esc([o.customer.canton,o.customer.prov].filter(Boolean).join(", "))+'</span></td><td style="max-width:280px">'+esc(lineText(o))+'</td><td><span class="zone-tag">'+zoneLabel(o.zone)+'</span></td><td>'+pill(stOf(o))+'</td><td class="r num"><b>'+fmt(o.total)+'</b></td></tr>'}).join("")+'</tbody></table></div>'+
+      return '<tr class="click" data-o="'+esc(o.id)+'" tabindex="0"><td><b class="code">'+esc(o.id)+'</b>'+nw+'<div class="mute" style="font-size:12.5px">'+esc(ago(o.createdAt))+'</div></td><td class="who"><b>'+esc(o.customer.name)+'</b><span>'+esc(o.customer.phone||"")+' · '+esc([o.customer.canton,o.customer.prov].filter(Boolean).join(", "))+'</span></td><td style="max-width:280px">'+esc(lineText(o))+'</td><td><span class="zone-tag'+(isBiz(o)?' biz-tag':'')+'">'+(isBiz(o)?'Negocio':zoneLabel(o.zone))+'</span></td><td>'+pill(stOf(o))+'</td><td class="r num"><b>'+fmt(o.total)+'</b></td></tr>'}).join("")+'</tbody></table></div>'+
     '<div class="mlist">'+list.map(function(o){return '<button type="button" class="mrow" data-o="'+esc(o.id)+'"><b class="code">'+esc(o.id)+'</b><b class="r num">'+fmt(o.total)+'</b><span>'+esc(o.customer.name)+' · '+esc(ago(o.createdAt))+'</span><span class="r">'+pill(stOf(o))+'</span></button>'}).join("")+'</div>';
   return head+tools+body;
 }
@@ -625,6 +641,8 @@ function bind(v){
     $$("[data-o]").forEach(function(r){r.onclick=function(){openOrder(r.dataset.o)}; r.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault(); openOrder(r.dataset.o)}}});
     var csv=$("#csv"); if(csv) csv.onclick=exportCsv;
     var no=$("#new-order"); if(no) no.onclick=openManual;
+    var nb=$("#new-biz"); if(nb) nb.onclick=openBizSale;
+    $$("[data-pseg]").forEach(function(b){b.onclick=function(){S.pseg=b.dataset.pseg; lsSet("roots.pseg",S.pseg); if(S.pseg==="negocios"&&S.filter==="activos") S.filter="todos"; render()}});
   }
   if(v==="inventario"){
     $$("[data-adj]").forEach(function(f){f.onsubmit=function(e){e.preventDefault(); var id=f.dataset.adj, raw=$("#ad-q-"+id).value.trim(), neg=/^\s*[-−]/.test(raw), q=int(raw);
@@ -898,8 +916,8 @@ function saveManual(){
 
 // ═══════════ CSV ═══════════
 function exportCsv(){
-  var rows=[["Pedido","Fecha","Cliente","Teléfono","Correo","Provincia","Cantón","Distrito","Zona","Productos","Subtotal","Descuento volumen","Envío","Total","Estado"]];
-  data().forEach(function(o){var c=o.customer; rows.push([o.id,o.createdAt,c.name,c.phone,c.email||"",c.prov,c.canton,c.distrito||"",zoneLabel(o.zone),lineText(o),o.subtotal,o.saving||0,o.shipping,o.total,STATUS[stOf(o)]])});
+  var rows=[["Pedido","Fecha","Tipo","Cliente","Teléfono","Correo","Provincia","Cantón","Distrito","Zona","Productos","Subtotal","Descuento volumen","Envío","Total","Estado"]];
+  data().filter(function(o){return inSeg(o,S.pseg)}).forEach(function(o){var c=o.customer; rows.push([o.id,o.createdAt,isBiz(o)?"Negocio":"Directo",c.name,c.phone,c.email||"",c.prov,c.canton,c.distrito||"",zoneLabel(o.zone),lineText(o),o.subtotal,o.saving||0,o.shipping,o.total,STATUS[stOf(o)]])});
   var csv=rows.map(function(r){return r.map(function(v){v=String(v==null?"":v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(",")}).join("\n");
   S.downloads.save({filename:"roots-pedidos-"+new Date().toISOString().slice(0,10)+".csv",data:"﻿"+csv}).then(function(){toast("CSV listo")},function(){});
 }
@@ -926,6 +944,9 @@ function revenue(list){return list.reduce(function(a,o){return a+(o.subtotal||0)
 function pct(x,t){return t?Math.round(x/t*100)+"%":"—"}
 function pct1(x,t){return t?(Math.round(x/t*1000)/10).toFixed(1)+"%":"—"}
 function kpi(lb,v,note){return '<div class="kpi"><span class="lb">'+lb+'</span><b>'+v+'</b><span class="delta">'+note+'</span></div>'}
+function segCtl(key,cur,counts){return '<div class="segctl" role="group" aria-label="Tipo de venta">'+SEGS.map(function(p){return '<button type="button" data-'+key+'="'+p[0]+'" aria-pressed="'+(cur===p[0])+'">'+p[1]+(counts?'<span class="n">'+counts[p[0]]+'</span>':'')+'</button>'}).join("")+'</div>'}
+function timeChips(key,opts,cur){return '<div class="tbar" role="group" aria-label="Período"><span class="caps" aria-hidden="true">Período</span>'+opts.map(function(p){return '<button type="button" class="tchip" data-'+key+'="'+p[0]+'" aria-pressed="'+(cur===p[0])+'">'+p[1]+'</button>'}).join("")+'</div>'}
+function inSeg(o,seg){return seg==="directo"?!isBiz(o):seg==="negocios"?isBiz(o):true}
 function chipGroup(key,opts,cur,label){return '<div class="chips" role="group" aria-label="'+label+'">'+opts.map(function(p){return '<button type="button" class="chip" data-'+key+'="'+p[0]+'" aria-pressed="'+(cur===p[0])+'">'+p[1]+'</button>'}).join("")+'</div>'}
 function stackRow(label,b,max,right){
   var t=b.pina+b.mango+b.fresa;
@@ -943,8 +964,9 @@ function listEditor(id,title,hint,items){
 function ventas(){
   var r=range(S.vperiod), all=sold(data()).filter(function(o){return inRange(o,r.s,r.e)});
   var dir=all.filter(function(o){return !isBiz(o)}), biz=all.filter(isBiz);
-  var head='<div class="head"><div><p class="caps">Ventas</p><h1 class="h1">Directo y <em>negocios.</em></h1></div>'+chipGroup("vperiod",VPERIODS,S.vperiod,"Período")+'</div>'+
-    '<div class="toolbar">'+chipGroup("seg",SEGS,S.seg,"Vista")+(S.seg==="negocios"&&!S.demo?'<button type="button" class="btn btn-m" id="new-biz" style="margin-left:auto">+ Venta a negocio</button>':'')+'</div>';
+  var head='<div class="head"><div><p class="caps">Ventas</p><h1 class="h1">Directo y <em>negocios.</em></h1></div></div>'+
+    '<div class="segbar">'+segCtl("seg",S.seg)+(S.seg==="negocios"&&!S.demo?'<button type="button" class="btn btn-m" id="new-biz">+ Venta a negocio</button>':'')+'</div>'+
+    timeChips("vperiod",VPERIODS,S.vperiod);
   if(S.seg==="directo") return head+ventasDirecto(dir);
   if(S.seg==="negocios") return head+ventasNegocios(biz);
   return head+ventasTodo(dir,biz,expInRange(r));
@@ -1009,7 +1031,7 @@ function gastos(){
   var total=list.reduce(function(a,x){return a+x.amount},0), sales=revenue(sold(data()).filter(function(o){return inRange(o,r.s,r.e)}));
   var byCat={}; list.forEach(function(x){byCat[x.category]=(byCat[x.category]||0)+x.amount});
   var cats=Object.keys(byCat).sort(function(a,b){return byCat[b]-byCat[a]}), maxC=cats.length?byCat[cats[0]]:1;
-  var head='<div class="head"><div><p class="caps">Gastos</p><h1 class="h1">Lo que <em>sale.</em></h1></div>'+chipGroup("gperiod",VPERIODS,S.gperiod,"Período")+'</div>';
+  var head='<div class="head"><div><p class="caps">Gastos</p><h1 class="h1">Lo que <em>sale.</em></h1></div></div>'+timeChips("gperiod",VPERIODS,S.gperiod);
   var form='<form id="exp-f" class="card" novalidate style="display:grid;gap:12px;align-content:start"><h2 class="h2">Agregar gasto</h2><div class="fgrid">'+
     '<div class="field"><label for="e-date">Fecha</label><input class="inp" type="date" id="e-date" value="'+today()+'"></div>'+
     '<div class="field"><label for="e-cat">Categoría</label><select class="inp" id="e-cat">'+expCats().map(function(c){return '<option>'+esc(c)+'</option>'}).join("")+'</select></div>'+
