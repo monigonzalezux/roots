@@ -345,7 +345,7 @@ textarea.inp{height:auto;min-height:72px;padding:10px 12px;resize:vertical}
 .pod b{font-size:14.5px;color:var(--ink)}
 .pod .num{font-size:12.5px;color:var(--mute);font-variant-numeric:tabular-nums}
 .facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;margin:0;padding-top:14px;border-top:1px solid var(--line)}
-.facts div{display:grid;gap:2px;min-width:0}
+.facts div{display:grid;gap:2px;min-width:0;align-content:start}
 .facts dt{font-size:12.5px;color:var(--mute);font-weight:600}
 .facts dd{margin:0;font-family:var(--sans);font-weight:700;font-size:18px;line-height:1.2;color:var(--musgo)}
 .facts span{font-size:12.5px;color:var(--mute)}
@@ -1360,6 +1360,7 @@ function funnelCard(r){
   var refs=Object.keys(f.referrers||{}).sort(function(a,b){return f.referrers[b]-f.referrers[a]});
   var facts=[
     ["Conversión",pct(f.ordered,f.sessions),"de las visitas terminó en pedido"],
+    ["Terminan el checkout",f.checkout?pct(f.ordered,f.checkout):"—",f.checkout?f.ordered+" de "+f.checkout+" que lo empezaron"+(f.checkout-f.ordered>0?" · "+(f.checkout-f.payment)+" se fueron en los datos de entrega, "+Math.max(0,f.payment-f.ordered)+" en el pago":""):"Nadie empezó el checkout todavía"],
     ["Desde el celular",pct(f.mobile,f.sessions),"de las visitas"+(f.mobile?" · convierte "+pct(f.mobile_ordered,f.mobile):"")],
     ["Tiempo de checkout",f.median_checkout_min==null?"—":f.median_checkout_min<1?"Menos de 1 min":"~"+Math.round(f.median_checkout_min)+" min","Mediana, del checkout al pedido enviado"],
     ["Campo con más errores",errs.length?(FIELD_NAME[errs[0]]||errs[0]):"Ninguno",errs.length?f.form_errors[errs[0]]+(f.form_errors[errs[0]]===1?" vez":" veces"):"Nadie se trabó en el formulario"],
