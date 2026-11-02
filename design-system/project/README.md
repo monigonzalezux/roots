@@ -1,5 +1,7 @@
 # Roots
 
+![Roots](../img/cover.png)
+
 Freeze-dried fruit from Costa Rica, made by a women-owned company: mango, fresa and piña, in Grande and Mini bags. This system covers the online store and the owners' back office, and is built from their code in [monigonzalezux/roots](https://github.com/monigonzalezux/roots).
 
 ## Voice and content
@@ -40,19 +42,98 @@ The brand is olive and bone, with honey, coral and lime as accents. It has one t
 
 ## Components
 
-The pieces in *Components* are the panel's own classes (`components/bundle.css`), shown as static renditions. Each README says what the consumer provides.
+The pieces below are the panel's own classes (`components/bundle.css`), shown as static renditions. Each one's folder in `components/` has its README and an HTML preview.
 
-| Component | Use it for |
-|---|---|
-| Button | Every action. `btn-m` primary, `btn-miel` secondary, `btn-o` outline, `btn-bad` destructive. |
-| SegmentedControl | Choosing the type of sale: Todo · Directo · Negocios. It always sits above time filters. |
-| PeriodFilter | Time ranges. Quieter than the segmented control on purpose. |
-| Chip | Filters inside a list, such as order status. |
-| StatusPill | An order's state. |
-| KpiTile | A headline number with its label and a note. |
-| FlavorStackBar | Bags per flavor in one row, with the legend. |
-| Field | A labelled input with its error line. |
-| AlertBar | Something that needs attention now, with one action. |
+| Group | Component | Use it for |
+|---|---|---|
+| Actions | [Button](#button) | Every action, as a pill |
+| Navigation | [SegmentedControl](#segmentedcontrol) | Choosing the type of sale |
+| | [PeriodFilter](#periodfilter) | Time ranges |
+| | [Chip](#chip) | Filters inside a list |
+| Data | [KpiTile](#kpitile) | A headline number |
+| | [FlavorStackBar](#flavorstackbar) | Bags per flavor in one row |
+| Forms | [Field](#field) | A labelled input with its error |
+| Feedback | [StatusPill](#statuspill) | An order's state |
+| | [AlertBar](#alertbar) | Something that needs attention now |
+
+### Actions
+
+#### Button
+Every action in the panel and the store, as a pill.
+
+![Button](../img/button.png)
+
+- **`btn-m`** (musgo) for the main action of a view, such as "Confirmar pago". One per view.
+- **`btn-miel`** for a second strong action, such as "Armá tu pack".
+- **`btn-o`** (outline) for secondary actions.
+- **`btn-bad`** for rejecting or cancelling.
+- Add **`btn-sm`** in toolbars.
+
+Labels start with a verb. A leading 18px stroke icon (`.ico`) is optional.
+
+### Navigation
+
+#### SegmentedControl
+Switches the whole view between types of sale: Todo, Directo, Negocios.
+
+![SegmentedControl](../img/segmented-control.png)
+
+It's the loudest filter on a page and always sits **above** the time filters. The count in each segment is optional. At phone width it stretches to full width with equal segments.
+
+#### PeriodFilter
+Quiet pills for the time range, labelled *Período*.
+
+![PeriodFilter](../img/period-filter.png)
+
+It's lighter than the SegmentedControl on purpose, so the two never compete. The selected range gets a soft musgo fill. When the chosen period is empty, pair it with an AlertBar that offers "Ver todo".
+
+#### Chip
+Filters inside a list, such as order status, with an optional count.
+
+![Chip](../img/chip.png)
+
+Use chips for many options of equal weight. For the type of sale use SegmentedControl; for time, PeriodFilter.
+
+### Data
+
+#### KpiTile
+A headline number with its label and a one-line note.
+
+![KpiTile](../img/kpi-tile.png)
+
+Numbers are Hanken Grotesk bold with tabular figures, colones without decimals. The note says what the number includes or how it compares. Tiles sit four in a row on desktop and two on phones.
+
+#### FlavorStackBar
+Bags per flavor in one row, stacked in the flavor colors.
+
+![FlavorStackBar](../img/flavor-stack-bar.png)
+
+The order is always Piña, Mango, Fresa. A 2px gap separates the segments, the legend is always shown, and each row's total sits at the right.
+
+### Forms
+
+#### Field
+A labelled input with an optional hint and its error line.
+
+![Field](../img/field.png)
+
+Labels sit above the input in 13.5px bold, and optional fields say "(opcional)". An error turns the border `bad` and says how to fix it, in voseo: "Revisá el correo".
+
+### Feedback
+
+#### StatusPill
+An order's state, with its color and its name.
+
+![StatusPill](../img/status-pill.png)
+
+These colors belong to order states only: verificar `warn`, pagado `info`, enviado `pur`, entregado `ok`, rechazado `bad`. Never color alone: the pill always carries the state's name.
+
+#### AlertBar
+Something that needs attention now, with one action.
+
+![AlertBar](../img/alert-bar.png)
+
+Use it for pending payments, missing setup or an empty period. Write one sentence with the key fact in bold, and give it one button.
 
 ## In the code
 
@@ -64,3 +145,4 @@ The live store and panel read these tokens. In the repository, `tools/build-toke
 - **The store's 18% and 34% line opacities** were folded into `line` and `line-2` (16% and 32%); the store now uses these.
 - **The brand-book typefaces** have no font files: Newsreader and Hanken Grotesk load from Google Fonts.
 - **Components** are static renditions of the panel's CSS. The store's template components are not included.
+- **The images in this README** (`../img/`) live next to this folder in the repository, so they don't show inside Claude Design. Each component's live preview is its `preview.html`.
