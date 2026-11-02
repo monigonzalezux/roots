@@ -1333,9 +1333,9 @@ function bindActivity(){
 // Totals of the store's anonymous steps for the chosen period (supabase/006-store-funnel.sql).
 var FIELD_NAME={name:"Nombre",phone:"Teléfono",email:"Correo",prov:"Provincia",canton:"Cantón",distrito:"Distrito",addr:"Dirección",waze:"Link de Waze"};
 function funnelCard(r){
-  var key=r.s.toISOString()+"|"+r.e.toISOString().slice(0,13);
-  // Refetch on a new period, and retry a failed load after 30 s (the database may have been set up meanwhile).
-  if(!S.funnel||S.funnel.key!==key||(S.funnel.data&&S.funnel.data.error&&Date.now()-S.funnel.at>30000)){
+  var key=r.s.toISOString()+"|"+S.vperiod;
+  // Refetch on a new period, and refresh loaded numbers after a minute so new visits show up.
+  if(!S.funnel||S.funnel.key!==key||(S.funnel.data&&Date.now()-S.funnel.at>60000)){
     S.funnel={key:key,data:null,at:Date.now()};
     if(S.sb&&!S.demo) S.sb.rpc("store_funnel",{p_from:r.s.toISOString(),p_to:r.e.toISOString()}).then(function(res){
       if(!S.funnel||S.funnel.key!==key) return;
@@ -1348,7 +1348,11 @@ function funnelCard(r){
   if(S.demo) return wrap('<p class="empty-chart">El embudo usa visitas reales: no tiene datos de ejemplo.</p>');
   if(!f) return wrap('<p class="empty-chart">Cargando…</p>');
   if(f.error) return wrap('<p class="empty-chart">El embudo todavía no está activado en la base de datos.</p>');
-  if(!f.sessions) return wrap('<p class="empty-chart">Sin visitas registradas en este período'+(f.first_event?'. El conteo empezó el '+esc(fmtDate(f.first_event,{day:"numeric",month:"long"}))+'.':'. El conteo empieza con la próxima visita.')+'</p>');
+  if(!f.sessions){
+    var started=f.first_event&&fmtDate(f.first_event,{day:"numeric",month:"long"});
+    if(f.first_event&&new Date(f.first_event)>=r.e) return wrap('<div class="p-empty" style="padding:20px"><p style="margin:0">El conteo de visitas empezó el '+esc(started)+', después de este período.</p><button type="button" class="btn btn-sm btn-m" data-vperiod="mes">Ver este mes</button></div>');
+    return wrap('<p class="empty-chart">Sin visitas registradas en este período.'+(started?' El conteo empezó el '+esc(started)+'.':' El conteo empieza con la próxima visita.')+'</p>');
+  }
   var steps=[["Visitaron la tienda",f.sessions],["Agregaron al carrito",f.added],["Empezaron el checkout",f.checkout],["Llegaron al pago",f.payment],["Enviaron el pedido",f.ordered]];
   var rows=steps.map(function(s,i){var prev=i?steps[i-1][1]:s[1], drop=i&&prev?Math.round((1-s[1]/prev)*100):0;
     return '<div class="fn-row"><span class="fn-l">'+s[0]+'</span><div class="fn-tr" aria-hidden="true"><i style="width:'+(s[1]/f.sessions*100)+'%"></i></div><span class="fn-n num">'+s[1]+'</span><span class="fn-p num">'+pct(s[1],f.sessions)+'</span><span class="fn-d">'+(i?(drop>0?'−'+drop+'% vs. el paso anterior':'Sin caída'):'')+'</span></div>'}).join("");
