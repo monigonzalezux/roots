@@ -968,6 +968,11 @@ function ventas(){
   var head='<div class="head"><div><p class="caps">Ventas</p><h1 class="h1">Directo y <em>negocios.</em></h1></div></div>'+
     '<div class="segbar">'+segCtl("seg",S.seg)+(S.seg==="negocios"&&!S.demo?'<button type="button" class="btn btn-m" id="new-biz">+ Venta a negocio</button>':'')+'</div>'+
     timeChips("vperiod",VPERIODS,S.vperiod);
+  var segList=S.seg==="directo"?dir:S.seg==="negocios"?biz:all;
+  if(!segList.length&&S.vperiod!=="todo"){
+    var older=sold(data()).filter(function(o){return inSeg(o,S.seg)}).length;
+    if(older) head+='<div class="alertbar" role="status"><span><b>No hay '+(S.seg==="negocios"?'ventas a negocios':S.seg==="directo"?'ventas directas':'ventas')+' en '+esc(VPERIODS.filter(function(p){return p[0]===S.vperiod})[0][1].toLowerCase())+'.</b> Hay '+older+' en total.</span><button type="button" class="btn btn-sm btn-m" data-vperiod="todo">Ver todo</button></div>';
+  }
   if(S.seg==="directo") return head+ventasDirecto(dir);
   if(S.seg==="negocios") return head+ventasNegocios(biz);
   return head+ventasTodo(dir,biz,expInRange(r));
