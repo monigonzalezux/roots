@@ -306,6 +306,30 @@ textarea.inp{height:auto;min-height:72px;padding:10px 12px;resize:vertical}
 .bz-row.bz-h span{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
 .bz-row .inp{text-align:right}
 .hist b{color:var(--ink);font-weight:700}
+/* próximo mejor paso · favorita de siempre */
+.dash-top{margin-bottom:16px}
+.nb-list{list-style:none;margin:0;padding:0;display:grid}
+.nb-i{display:grid;gap:4px;padding:14px 0;border-top:1px solid var(--line)}
+.nb-i:first-child{border-top:0;padding-top:4px}.nb-i:last-child{padding-bottom:0}
+.nb-k{justify-self:start;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:99px;background:var(--hueso-2);color:var(--musgo)}
+.nb-i b{font-family:var(--serif);font-weight:400;font-size:22px;line-height:1.2;color:var(--musgo);text-wrap:balance}
+.nb-i p{margin:0;font-size:14.5px;line-height:1.5}
+.nb-do strong{color:var(--musgo)}
+.nb-why{font-size:12.5px!important;color:var(--mute)}
+.fav{align-content:start}
+.podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:end;text-align:center;padding-top:8px}
+.pod{display:grid;justify-items:center;gap:6px;min-width:0}
+.pod img{height:96px;width:auto;max-width:100%;object-fit:contain;filter:drop-shadow(0 6px 8px rgba(40,40,15,.16))}
+.pod.p1 img{height:136px}.pod.p2 img{height:110px}
+.pod-b{display:block;width:100%;border-radius:10px 10px 4px 4px;height:22px}
+.pod.p1 .pod-b{height:52px}.pod.p2 .pod-b{height:36px}
+.pod b{font-size:14.5px;color:var(--ink)}
+.pod .num{font-size:12.5px;color:var(--mute);font-variant-numeric:tabular-nums}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;margin:0;padding-top:14px;border-top:1px solid var(--line)}
+.facts div{display:grid;gap:2px;min-width:0}
+.facts dt{font-size:12.5px;color:var(--mute);font-weight:600}
+.facts dd{margin:0;font-family:var(--serif);font-size:21px;line-height:1.2;color:var(--musgo)}
+.facts span{font-size:12.5px;color:var(--mute)}
 .segbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
 .segctl{display:inline-flex;padding:4px;gap:4px;background:var(--card);border:1px solid var(--line-2);border-radius:16px}
 .segctl button{min-height:44px;padding:0 20px;border:0;border-radius:12px;background:none;font-weight:800;font-size:15px;color:var(--musgo);cursor:pointer;display:inline-flex;gap:8px;align-items:center;justify-content:center;white-space:nowrap}
@@ -521,7 +545,7 @@ function resumen(){
   var zt=a.zones.gam+a.zones.fuera, zoneHtml=zt?'<div class="split"><div><b>'+a.zones.gam+'</b>dentro de la GAM</div><div style="text-align:right"><b>'+a.zones.fuera+'</b>fuera de la GAM</div></div><div class="meter" aria-hidden="true"><i style="width:'+(a.zones.gam/zt*100)+'%"></i></div>':'<p class="empty-chart">Sin pedidos pagados en este período.</p>';
   var c=cfg(), low=SKUS.filter(function(s){var x=c.stock[s.id]||{}; return (x.stock||0)<=(x.low||0)});
   var stockHtml=!S.config?'<p class="mute" style="margin:0">Cargá el inventario inicial en <a href="#ajustes">Ajustes</a>.</p>':low.length?'<div class="stockwatch">'+low.map(function(s){var x=c.stock[s.id]||{}; return '<div class="sw"><img src="'+s.img+'" alt=""><div><b>'+esc(s.name)+'</b><div class="mute" style="font-size:12.5px">Alerta en '+(x.low||0)+' o menos</div></div>'+((x.stock||0)<=0?'<span class="outtag">Agotado</span>':'<span class="lowtag">Quedan '+x.stock+'</span>')+'</div>'}).join("")+'</div><a class="link" href="#inventario">Ir a inventario</a>':'<p class="mute" style="margin:0">Todo el inventario está por encima de la alerta.</p>';
-  return head+alert+kpis+'<div class="dash">'+fin+
+  return head+alert+'<div class="dash dash-top">'+nextStepsCard()+favoritesCard()+'</div>'+kpis+'<div class="dash">'+fin+
     '<section class="card chart-card wide" aria-labelledby="c-sales"><div class="ch"><h2 class="h2" id="c-sales">Ventas confirmadas por día</h2><span class="mute" style="font-size:13px">Pasá el cursor por una barra para ver el detalle</span></div><div class="chart" id="sales-chart"></div></section>'+
     '<section class="card chart-card" aria-labelledby="c-flav"><div class="ch"><h2 class="h2" id="c-flav">Bolsas por producto</h2><span class="mute" style="font-size:13px">Los packs cuentan cada bolsa</span></div>'+flav+'</section>'+
     '<section class="card chart-card" aria-labelledby="c-stock"><h2 class="h2" id="c-stock">Inventario bajo</h2>'+stockHtml+'</section>'+
@@ -634,7 +658,7 @@ function bind(v){
   var ga=$("#go-active"); if(ga) ga.onclick=function(){S.filter="activos"};
   if(v==="ventas") bindVentas();
   if(v==="gastos") bindGastos();
-  if(v==="resumen"){$$("[data-period]").forEach(function(b){b.onclick=function(){S.period=b.dataset.period; lsSet("roots.period",S.period); render()}}); drawSales()}
+  if(v==="resumen"){var nbm=$("#nb-more"); if(nbm) nbm.onclick=function(){S.allTips=!S.allTips; render()};$$("[data-period]").forEach(function(b){b.onclick=function(){S.period=b.dataset.period; lsSet("roots.period",S.period); render()}}); drawSales()}
   if(v==="pedidos"){
     $$("[data-filter]").forEach(function(b){b.onclick=function(){S.filter=b.dataset.filter; render()}});
     var qi=$("#q"); qi.oninput=function(){S.q=qi.value; var pos=qi.selectionStart; render(); var n=$("#q"); n.focus(); try{n.setSelectionRange(pos,pos)}catch(e){}};
@@ -968,6 +992,163 @@ function exportCsv(){
   data().filter(function(o){return inSeg(o,S.pseg)}).forEach(function(o){var c=o.customer; rows.push([o.id,o.createdAt,isBiz(o)?"Negocio":"Directo",c.name,c.phone,c.email||"",c.prov,c.canton,c.distrito||"",zoneLabel(o.zone),lineText(o),o.subtotal,o.saving||0,o.shipping,o.total,STATUS[stOf(o)]])});
   var csv=rows.map(function(r){return r.map(function(v){v=String(v==null?"":v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(",")}).join("\n");
   S.downloads.save({filename:"roots-pedidos-"+new Date().toISOString().slice(0,10)+".csv",data:"﻿"+csv}).then(function(){toast("CSV listo")},function(){});
+}
+
+// ═══════════ PRÓXIMO MEJOR PASO (Resumen) ═══════════
+// Plain rules over the owners' own sales. Each one only appears with enough data, and says what it saw,
+// what to do and the business idea behind it. Orders imported with an approximate date are left out of
+// the rules that depend on the exact day.
+var DAY=864e5;
+function daysAgo(iso){return (Date.now()-new Date(iso).getTime())/DAY}
+function exactDate(o){return !/fecha aproximada/.test((o.customer&&o.customer.notes)||"")}
+function custKey(o){return digits(o.customer.phone)||String(o.customer.name||"").trim().toLowerCase()}
+function dias(n){n=Math.floor(n); return n===1?"1 día":n+" días"}
+function unitsOf(o){var u={g:0,m:0}; (o.lines||[]).forEach(function(l){u[l.size]+=l.kind==="pack"?l.n*l.qty:l.qty}); return u}
+function insights(){
+  var all=sold(data()), out=[], c=cfg();
+  var dir=all.filter(function(o){return !isBiz(o)}), biz=all.filter(isBiz);
+  var push=function(score,tag,title,saw,todo,why){out.push({score:score,tag:tag,title:title,saw:saw,todo:todo,why:why})};
+
+  // Inventory: how many days the stock lasts at the last 30 days' pace
+  var hasStock=SKUS.some(function(s){return ((c.stock[s.id]||{}).stock||0)>0});
+  if(hasStock){
+    var sold30={}; all.filter(function(o){return daysAgo(o.createdAt)<=30}).forEach(function(o){var b=bagsOf(o); Object.keys(b).forEach(function(k){sold30[k]=(sold30[k]||0)+b[k]})});
+    var cover=SKUS.map(function(s){var per=(sold30[s.id]||0)/30, st=(c.stock[s.id]||{}).stock||0; return {s:s,st:st,per:per,d:per?st/per:Infinity}});
+    var low=cover.filter(function(x){return x.per>0&&x.d<21}).sort(function(a,b){return a.d-b.d});
+    if(low.length){var L=low[0];
+      push(95-L.d,"Inventario","Producí más "+L.s.name,
+        "Al ritmo de los últimos 30 días ("+Math.round(L.per*7)+" bolsas por semana) te alcanza para "+(L.d<1?"menos de un día":"unos "+dias(L.d))+"."+(low.length>1?" También van justos: "+low.slice(1,3).map(function(x){return x.s.name+" ("+dias(x.d)+")"}).join(", ")+".":""),
+        "Programá la próxima producción ya. Quedarte sin bolsas es una venta perdida y una clienta que prueba otra marca.",
+        "Punto de reorden: se repone cuando el inventario cubre lo que tarda en volver a estar listo, más un margen.")}
+    var slow=cover.filter(function(x){return x.st>=20&&x.d>75}).sort(function(a,b){return b.d-a.d})[0];
+    if(slow) push(52,"Inventario","Mové el "+slow.s.name,
+      slow.st+" bolsas en bodega"+(isFinite(slow.d)?", para unos "+Math.round(slow.d)+" días al ritmo actual":" y ninguna vendida en 30 días")+".",
+      "Destacalo esta semana: una historia de Instagram, dentro de un pack surtido o de regalo en pedidos grandes.",
+      "Rotación de inventario: el producto quieto inmoviliza plata y, siendo fruta, pierde frescura.")}
+
+  // Shops that broke their own buying rhythm
+  var shops={}; biz.forEach(function(o){var k=o.channel||o.customer.name; (shops[k]=shops[k]||[]).push(new Date(o.createdAt).getTime())});
+  var late=[]; Object.keys(shops).forEach(function(k){var t=shops[k].sort(function(a,b){return a-b}); if(t.length<3) return;
+    var gaps=[]; for(var i=1;i<t.length;i++) gaps.push((t[i]-t[i-1])/DAY); gaps.sort(function(a,b){return a-b});
+    var med=Math.max(1,gaps[Math.floor(gaps.length/2)]), since=(Date.now()-t[t.length-1])/DAY;
+    if(since>Math.max(21,med*1.6)&&since<200) late.push({k:k,since:Math.round(since),med:Math.round(med)})});
+  late.sort(function(a,b){return (b.since/b.med)-(a.since/a.med)});
+  if(late.length){var q=late[0];
+    push(85,"Negocios","Escribile a "+q.k,
+      "Suele comprar cada "+q.med+" días y su última compra fue hace "+q.since+"."+(late.length>1?" También atrasadas: "+late.slice(1,3).map(function(x){return x.k}).join(", ")+".":""),
+      "Ofrecé reposición antes de que llenen ese espacio con otra marca. Si hay un sabor nuevo o un precio por volumen, mencionalo.",
+      "Frecuencia de recompra: cuando un cliente rompe su propio ritmo es la señal más temprana de que se está yendo.")}
+
+  // Direct customers: recency and frequency
+  var cust={}; dir.forEach(function(o){var k=custKey(o); if(!k) return; var x=cust[k]=cust[k]||{name:o.customer.name,n:0,total:0,last:0}; x.n++; x.total+=o.subtotal||0; x.last=Math.max(x.last,new Date(o.createdAt).getTime())});
+  var cl=Object.keys(cust).map(function(k){return cust[k]}), rep=cl.filter(function(x){return x.n>=2});
+  var cold=rep.filter(function(x){var d=(Date.now()-x.last)/DAY; return d>45&&d<240}).sort(function(a,b){return b.total-a.total});
+  if(cold.length>=2) push(78,"Clientes","Escribile a "+cold.length+" clientas que se enfriaron",
+    "Compraron 2 veces o más y no vuelven hace más de 45 días: "+cold.slice(0,4).map(function(x){return x.name}).join(", ")+(cold.length>4?" y "+(cold.length-4)+" más":"")+".",
+    "Un WhatsApp personal con lo nuevo o el pack del mes. Empezá por quienes más han comprado.",
+    "Análisis RFM (recencia, frecuencia, monto): volver a activar a quien ya compró cuesta mucho menos que conseguir una clienta nueva.");
+  if(cl.length>=20){var rr=rep.length/cl.length;
+    if(rr<.3) push(58,"Clientes","Convertí la primera compra en la segunda",
+      "Solo "+Math.round(rr*100)+"% de tus clientas directas ha comprado más de una vez.",
+      "A los 7–10 días de cada entrega, preguntá qué sabor les gustó más y dales una razón para volver: el sabor que no probaron o el precio por volumen.",
+      "Tasa de recompra: la segunda compra es la más difícil y la que más predice que una clienta se queda.")}
+
+  // Payday rhythm (in Costa Rica many people are paid on the 15th and at month end)
+  var dated=dir.filter(exactDate).filter(function(o){return daysAgo(o.createdAt)<=180});
+  if(dated.length>=30){
+    var pay=0,tot=0; dated.forEach(function(o){var d=new Date(o.createdAt).getDate(), v=o.subtotal||0; tot+=v; if((d>=14&&d<=17)||d>=28||d<=2) pay+=v});
+    var sh=tot?pay/tot:0, expected=10/30.4;
+    if(sh>=expected*1.25) push(72,"Ventas","Concentrá las promos en quincena",
+      Math.round(sh*100)+"% de tus ventas directas cae del 14 al 17 y del 28 al 2, aunque esos días son solo un tercio del mes.",
+      "Publicá y mandá recordatorios el 14 y el 28, poné ahí los packs o un envío especial, y tené el inventario listo antes.",
+      "Ciclo de pago: en Costa Rica mucha gente cobra quincenal, y la compra de antojo sigue al dinero disponible.");
+    else if(sh<=expected*.8) push(44,"Ventas","Tus ventas no dependen de la quincena",
+      "Solo "+Math.round(sh*100)+"% de las ventas directas cae en días de pago: se reparten durante el mes.",
+      "Mantené las publicaciones parejas y usá una quincena para probar una promo puntual y medir si mueve las ventas.",
+      "Ciclo de pago: saber si tu clienta compra por antojo o por planificación cambia cuándo conviene invertir en promoción.");
+    var wd=[0,0,0,0,0,0,0]; dated.forEach(function(o){wd[new Date(o.createdAt).getDay()]++});
+    var mx=wd.indexOf(Math.max.apply(null,wd)), share=wd[mx]/dated.length, DN=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+    if(share>=.22) push(46,"Ventas","Publicá el "+DN[(mx+6)%7]+" en la tarde",
+      "Los "+DN[mx]+" entra el "+Math.round(share*100)+"% de los pedidos directos, cerca del doble de un día promedio.",
+      "Programá la publicación fuerte de la semana para la tarde anterior y respondé rápido los "+DN[mx]+".",
+      "Estacionalidad semanal: poner el esfuerzo de marketing en los días que ya venden más.")}
+
+  // One or two bags away from the volume price
+  var r90=dir.filter(function(o){return daysAgo(o.createdAt)<=90});
+  if(r90.length>=15){var near=r90.filter(function(o){var u=unitsOf(o); return u.g===3||u.g===4||u.m===4||u.m===5}).length;
+    if(near/r90.length>=.2) push(55,"Ventas","Empujá el precio por volumen",
+      Math.round(near/r90.length*100)+"% de los pedidos directos de los últimos 90 días quedó a 1 o 2 bolsas del precio por volumen (5 Grandes o 6 Minis).",
+      "Ofrecelo en el chat al confirmar: “con una bolsa más te queda a ₡3,500 cada una”. Un pack de 5 ya armado ayuda.",
+      "Ticket promedio: es más fácil que una clienta sume una bolsa que conseguir una clienta nueva.")}
+
+  // Grande vs Mini trend
+  var mini=function(list){var u={g:0,m:0}; list.forEach(function(o){var b=bagsOf(o); Object.keys(b).forEach(function(k){u[k.charAt(0)]+=b[k]})}); var t=u.g+u.m; return t?{m:u.m/t,t:t}:null};
+  var now60=mini(dir.filter(function(o){return daysAgo(o.createdAt)<=60})), prev60=mini(dir.filter(function(o){var d=daysAgo(o.createdAt); return d>60&&d<=120}));
+  if(now60&&prev60&&now60.t>=40&&prev60.t>=40&&Math.abs(now60.m-prev60.m)>=.12){var up=now60.m>prev60.m;
+    push(57,"Producto",up?"Las Minis vienen creciendo":"Volvieron las Grandes",
+      "Las Minis son "+Math.round(now60.m*100)+"% de las bolsas directas de los últimos 60 días, frente a "+Math.round(prev60.m*100)+"% en los 60 anteriores.",
+      up?"Inclinate la producción hacia Minis y probá un pack de Minis surtido para regalo o loncheras.":"Asegurá inventario de Grandes y mostralas primero en la tienda.",
+      "Mezcla de producto: producir según lo que las clientas ya están eligiendo reduce faltantes y sobrantes.")}
+
+  // Depending on one shop
+  var b90=biz.filter(function(o){return daysAgo(o.createdAt)<=90}), bt=revenue(b90);
+  if(b90.length>=5&&bt){var by={}; b90.forEach(function(o){var k=o.channel; by[k]=(by[k]||0)+(o.subtotal||0)}); var ks=Object.keys(by).sort(function(x,y){return by[y]-by[x]}), top=by[ks[0]]/bt;
+    if(top>=.3) push(60,"Negocios","Sumá tiendas para no depender de "+ks[0],
+      ks[0]+" es "+Math.round(top*100)+"% de lo vendido a negocios en 90 días"+(ks.length>=3?"; las tres primeras suman "+Math.round((by[ks[0]]+by[ks[1]]+by[ks[2]])/bt*100)+"%":"")+".",
+      "Buscá 2 o 3 tiendas parecidas (orgánicas, cafeterías, gimnasios) en zonas donde ya te compran por la tienda en línea.",
+      "Riesgo de concentración y regla 80/20: pocas cuentas sostienen la mayor parte, y perder una golpea fuerte.")}
+
+  // This month's pace against the same point last month
+  var nowD=new Date(), dayN=nowD.getDate();
+  if(dayN>=7){var s1=new Date(nowD.getFullYear(),nowD.getMonth(),1), s0=new Date(nowD.getFullYear(),nowD.getMonth()-1,1), e0=new Date(nowD.getFullYear(),nowD.getMonth()-1,dayN+1);
+    var cur=revenue(all.filter(function(o){return new Date(o.createdAt)>=s1})), prv=revenue(all.filter(function(o){var t=new Date(o.createdAt); return t>=s0&&t<e0}));
+    if(prv>0){var ch=(cur-prv)/prv;
+      if(ch<=-.2) push(70,"Ventas","Este mes va más lento",
+        "Al día "+dayN+" llevás "+fmt(cur)+", "+Math.round(-ch*100)+"% menos que a esta altura del mes pasado ("+fmt(prv)+").",
+        "Activá lo que ya funcionó: escribile a clientas recurrentes y a las tiendas que suelen reponer en estas fechas.",
+        "Seguimiento del ritmo: comparar contra el mismo punto del mes pasado avisa a tiempo, no al cierre.");
+      else if(ch>=.2) push(40,"Ventas","Este mes va mejor que el pasado",
+        "Al día "+dayN+" llevás "+fmt(cur)+", "+Math.round(ch*100)+"% más que a esta altura del mes pasado.",
+        "Revisá que el inventario alcance para sostener el ritmo y anotá qué hicieron distinto para repetirlo.",
+        "Seguimiento del ritmo: entender por qué un mes va bien vale tanto como detectar uno malo.")}}
+
+  // Expenses against sales
+  var e30=S.expenses.filter(function(x){return daysAgo(x.spent_on+"T12:00:00")<=30}).reduce(function(a,x){return a+x.amount},0), s30=revenue(all.filter(function(o){return daysAgo(o.createdAt)<=30}));
+  if(e30>0&&s30>0&&e30/s30>=.7) push(68,"Finanzas","Los gastos se están comiendo las ventas",
+    "En 30 días los gastos ("+fmt(e30)+") son "+Math.round(e30/s30*100)+"% de lo vendido ("+fmt(s30)+").",
+    "Revisá en Gastos la categoría más grande, repartí compras grandes si se puede, y confirmá que el precio a negocios cubre el costo.",
+    "Margen operativo: lo que queda después de los gastos es lo que permite reinvertir.");
+
+  return out.sort(function(x,y){return y.score-x.score});
+}
+function nextStepsCard(){
+  var list=insights(), shown=S.allTips?list:list.slice(0,3);
+  if(!list.length) return '<section class="card chart-card" aria-labelledby="nb-t"><div><p class="caps">Para esta semana</p><h2 class="h2" id="nb-t">Próximo mejor paso</h2></div><p class="empty-chart">Todavía no hay suficientes ventas para recomendar algo con confianza. Las ideas aparecen aquí a medida que se registran pedidos.</p></section>';
+  return '<section class="card chart-card" aria-labelledby="nb-t"><div class="ch"><div><p class="caps">Para esta semana</p><h2 class="h2" id="nb-t">Próximo mejor paso</h2></div>'+
+    (list.length>3?'<button type="button" class="link" id="nb-more">'+(S.allTips?'Ver menos':'Ver todas ('+list.length+')')+'</button>':'')+'</div>'+
+    '<ol class="nb-list">'+shown.map(function(t){return '<li class="nb-i"><span class="nb-k">'+esc(t.tag)+'</span><b>'+esc(t.title)+'</b><p>'+esc(t.saw)+'</p><p class="nb-do"><strong>Qué hacer:</strong> '+esc(t.todo)+'</p><p class="nb-why">'+esc(t.why)+'</p></li>'}).join("")+'</ol></section>';
+}
+
+// ═══════════ LA FAVORITA DE SIEMPRE (Resumen) ═══════════
+function favoritesCard(){
+  var all=sold(data()), b=flavBags(all), t=b.pina+b.mango+b.fresa;
+  if(!t) return '';
+  var byBags=function(x){return FORDER.slice().sort(function(p,q){return x[q]-x[p]})};
+  var rank=byBags(b), sz={g:0,m:0}, skuB={};
+  all.forEach(function(o){var x=bagsOf(o); Object.keys(x).forEach(function(k){sz[k.charAt(0)]+=x[k]; skuB[k]=(skuB[k]||0)+x[k]})});
+  var topSku=Object.keys(skuB).sort(function(x,y){return skuB[y]-skuB[x]})[0];
+  var r=range("mes"), mb=flavBags(all.filter(function(o){return inRange(o,r.s,r.e)})), mTop=(mb.pina+mb.mango+mb.fresa)?byBags(mb)[0]:null;
+  var db=flavBags(all.filter(function(o){return !isBiz(o)})), bb=flavBags(all.filter(isBiz));
+  var dTop=(db.pina+db.mango+db.fresa)?byBags(db)[0]:null, bTop=(bb.pina+bb.mango+bb.fresa)?byBags(bb)[0]:null;
+  var podium=[rank[1],rank[0],rank[2]].map(function(f){var place=rank.indexOf(f)+1;
+    return '<div class="pod p'+place+'"><img src="img/froot-'+f+'.png" alt="'+FNAME[f]+'"><span class="pod-b" style="background:'+FCOL[f]+'" aria-hidden="true"></span><b>'+place+'.º '+FNAME[f]+'</b><span class="num">'+b[f].toLocaleString("en-US")+' bolsas · '+pct(b[f],t)+'</span></div>'}).join("");
+  var facts=[
+    ["Tamaño favorito",sz.g>=sz.m?"Grande":"Mini",pct(Math.max(sz.g,sz.m),sz.g+sz.m)+" de las bolsas"],
+    ["Producto estrella",sku(topSku).name,skuB[topSku].toLocaleString("en-US")+" bolsas"],
+    ["Este mes manda",mTop?FNAME[mTop]:"—",!mTop?"Sin ventas este mes":mTop===rank[0]?"La de siempre":"Le está ganando a "+FNAME[rank[0]]],
+    ["Clientas · tiendas",dTop&&bTop?FNAME[dTop]+" · "+FNAME[bTop]:"—",!(dTop&&bTop)?"Faltan ventas de un canal":dTop===bTop?"El mismo favorito en los dos":"Cada canal prefiere un sabor distinto"]];
+  return '<section class="card chart-card fav" aria-labelledby="fav-t"><div><p class="caps">Desde el primer pedido</p><h2 class="h2" id="fav-t">'+FNAME[rank[0]]+', la favorita de siempre</h2></div>'+
+    '<div class="podium">'+podium+'</div><dl class="facts">'+facts.map(function(f){return '<div><dt>'+f[0]+'</dt><dd>'+esc(f[1])+'</dd><span>'+esc(f[2])+'</span></div>'}).join("")+'</dl></section>';
 }
 
 // ═══════════ VENTAS: directo vs negocios ═══════════
