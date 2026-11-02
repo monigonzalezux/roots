@@ -1334,11 +1334,12 @@ function bindActivity(){
 var FIELD_NAME={name:"Nombre",phone:"Teléfono",email:"Correo",prov:"Provincia",canton:"Cantón",distrito:"Distrito",addr:"Dirección",waze:"Link de Waze"};
 function funnelCard(r){
   var key=r.s.toISOString()+"|"+r.e.toISOString().slice(0,13);
-  if(!S.funnel||S.funnel.key!==key){
-    S.funnel={key:key,data:null};
+  // Refetch on a new period, and retry a failed load after 30 s (the database may have been set up meanwhile).
+  if(!S.funnel||S.funnel.key!==key||(S.funnel.data&&S.funnel.data.error&&Date.now()-S.funnel.at>30000)){
+    S.funnel={key:key,data:null,at:Date.now()};
     if(S.sb&&!S.demo) S.sb.rpc("store_funnel",{p_from:r.s.toISOString(),p_to:r.e.toISOString()}).then(function(res){
       if(!S.funnel||S.funnel.key!==key) return;
-      S.funnel.data=res.error?{error:true}:(res.data||{sessions:0});
+      S.funnel.data=res.error?{error:true}:(res.data||{sessions:0}); S.funnel.at=Date.now();
       if(view()==="ventas"&&!busy()) render();
     });
   }
