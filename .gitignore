@@ -5,3 +5,4 @@ node_modules/
 local/
 store/config.js
 panel/config.js
+.dev/
