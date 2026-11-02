@@ -20,6 +20,20 @@ def rep(text, old, new):
     assert text.count(old) == 1, (text.count(old), old[:70])
     return text.replace(old, new)
 
+# ── brand tokens come from roots-tokens.css (design-system/project/tokens.json) ──
+ROOT_COLORS = ("--musgo:#515125;--musgo-2:#3E3E1B;--hueso:#EDE6D6;--hueso-2:#F5F0E5;--white:#FFFDF8;--ink:#222222;--mute:#5C5A43;"
+               "--miel:#FCC14E;--coral:#F67A57;--lima:#C2C85E;--line:rgba(81,81,37,.18);--line-2:rgba(81,81,37,.34);")
+helmet = rep(helmet, ROOT_COLORS, "--white:var(--card);")
+helmet = rep(helmet, '--serif:"Newsreader","Iowan Old Style",Georgia,serif;--sans:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;',
+             "--serif:var(--font-serif);--sans:var(--font-sans);")
+
+tpl = rep(tpl, 'style="font-family: var(--sans); color: #515125; background: #EDE6D6"', 'style="font-family: var(--sans); color: var(--musgo); background: var(--hueso)"')
+tpl = rep(tpl, '<p class="lead" style="color: #515125">', '<p class="lead" style="color: var(--musgo)">')
+# the order-receipt image is drawn on a canvas, which can't read CSS variables: look them up
+js = rep(js, "var MUS = '#515125', HUE = '#EDE6D6', CARD = '#FFFDF8', MUTE = '#6B6950', CORAL = '#F67A57', MIEL = '#FCC14E';",
+         "var tok = function (n, f) { try { return getComputedStyle(document.documentElement).getPropertyValue('--' + n).trim() || f; } catch (e) { return f; } };\n"
+         "      var MUS = tok('musgo', '#515125'), HUE = tok('hueso', '#EDE6D6'), CARD = tok('card', '#FFFDF8'), MUTE = '#6B6950', CORAL = tok('coral', '#F67A57'), MIEL = tok('miel', '#FCC14E');")
+
 # ── template: real checkout, no prototype notes ──
 tpl = rep(tpl, '<button type="button" class="btn btn-m" id="go-pay" onClick="{{submitStep1}}">Continuar al pago</button>',
           '<button type="button" class="btn btn-m" id="go-pay" onClick="{{submitStep1}}" disabled="{{submitting}}" aria-busy="{{submittingStr}}"><sc-if value="{{submitting}}" hint-placeholder-val="{{ false }}"><span class="spin"></span></sc-if>{{step1Label}}</button>')
@@ -75,6 +89,7 @@ page = f"""<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <link rel="icon" href="img/{files['5e85eacea9000037a164a8e22181911e']}">
+<link rel="stylesheet" href="roots-tokens.css">
 {helmet.strip()}
 </head>
 <body>

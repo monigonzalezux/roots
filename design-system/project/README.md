@@ -54,9 +54,13 @@ The pieces in *Components* are the panel's own classes (`components/bundle.css`)
 | Field | A labelled input with its error line. |
 | AlertBar | Something that needs attention now, with one action. |
 
+## In the code
+
+The live store and panel read these tokens. In the repository, `tools/build-tokens.mjs` turns `design-system/project/tokens.json` into `roots-tokens.css` (every color, the two font stacks, spacing, radii and shadows as CSS custom properties), and both sites load it. Netlify rebuilds it on every deploy, so a token changed in the repository reaches both sites. To bring a change made here into the code, copy this system's `tokens.json` into the repository and push.
+
 ## Not synced
 
 - **Gradients** from the store (`--g-mango`, `--g-fresa`, `--g-pina`, `--g-hojas`) are not tokens here, because the token format holds solid colors only. They live in the store's code.
-- **The store's 18% and 34% line opacities** are folded into `line` and `line-2` (the panel's 16% and 32%).
+- **The store's 18% and 34% line opacities** were folded into `line` and `line-2` (16% and 32%); the store now uses these.
 - **The brand-book typefaces** have no font files: Newsreader and Hanken Grotesk load from Google Fonts.
 - **Components** are static renditions of the panel's CSS. The store's template components are not included.

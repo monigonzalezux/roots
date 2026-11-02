@@ -1,5 +1,5 @@
 [build]
   publish = "."
   # Writes config.js from the Netlify environment variables SUPABASE_URL and SUPABASE_ANON_KEY,
-  # so the keys never need to be in git.
-  command = '''node -e "require('fs').writeFileSync('config.js','window.ROOTS_CONFIG='+JSON.stringify({supabaseUrl:process.env.SUPABASE_URL||'',supabaseAnonKey:process.env.SUPABASE_ANON_KEY||''})+';')"'''
+  # so the keys never need to be in git. Then builds roots-tokens.css from design-system/project/tokens.json.
+  command = '''node -e "require('fs').writeFileSync('config.js','window.ROOTS_CONFIG='+JSON.stringify({supabaseUrl:process.env.SUPABASE_URL||'',supabaseAnonKey:process.env.SUPABASE_ANON_KEY||''})+';')" && node ../tools/build-tokens.mjs roots-tokens.css'''

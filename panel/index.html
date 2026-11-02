@@ -3,13 +3,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="roots-tokens.css">
 <style>
 /* Roots back office for the owners. Layout: managers' back office — sticky top bar with section tabs (Resumen · Pedidos · Inventario · Ajustes); each section is a full-width workspace; order detail and new-order form open in a right drawer. Brand-book palette, single deliberate light look. */
 :root{
-  --musgo:#515125; --musgo-2:#3E3E1B; --hueso:#EDE6D6; --hueso-2:#F5F0E5; --card:#FFFDF8; --ink:#222222; --mute:#5C5A43;
-  --miel:#FCC14E; --coral:#F67A57; --lima:#C2C85E; --line:rgba(81,81,37,.16); --line-2:rgba(81,81,37,.32); --grid:rgba(81,81,37,.10);
-  --ok:#3F6212; --ok-bg:#E4E9C4; --warn:#7A5200; --warn-bg:#FDE9B5; --info:#1E4B6E; --info-bg:#DCE9F2; --bad:#9B1C1C; --bad-bg:#FBE1DC; --pur:#5B2C83; --pur-bg:#EDE3F5;
-  --serif:"Newsreader","Iowan Old Style",Georgia,serif; --sans:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  /* Brand colors, fonts, spacing and radii come from roots-tokens.css (design-system/project/tokens.json). */
+  --grid:rgba(81,81,37,.10);
+  --serif:var(--font-serif); --sans:var(--font-sans);
   color-scheme:light;
 }
 *{box-sizing:border-box}
@@ -87,7 +87,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .chart-card .ch{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
 .chart{position:relative;min-width:0}
 .chart svg{display:block;width:100%;height:auto;overflow:visible}
-.tip{position:absolute;pointer-events:none;background:var(--ink);color:#FFFDF8;border-radius:10px;padding:8px 10px;font-size:12.5px;line-height:1.35;white-space:nowrap;transform:translate(-50%,-110%);z-index:5}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--card);border-radius:10px;padding:8px 10px;font-size:12.5px;line-height:1.35;white-space:nowrap;transform:translate(-50%,-110%);z-index:5}
 .tip b{font-weight:800}
 .hbars{display:grid;gap:12px}
 .hbar{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:12px;align-items:center;font-size:14px}
@@ -318,7 +318,7 @@ textarea.inp{height:auto;min-height:72px;padding:10px 12px;resize:vertical}
 .tchip{min-height:36px;padding:0 12px;border-radius:99px;border:0;background:none;font-weight:700;font-size:13.5px;color:var(--mute);cursor:pointer;white-space:nowrap}
 .tchip:hover{background:rgba(81,81,37,.07);color:var(--musgo)}
 .tchip[aria-pressed="true"]{background:rgba(81,81,37,.13);color:var(--musgo)}
-.biz-tag{background:#FDE9B5;color:#6B4A00}
+.biz-tag{background:var(--warn-bg);color:#6B4A00}
 @media (max-width:560px){.segbar .segctl{display:flex;width:100%}.segctl button{flex:1;padding:0 8px;font-size:14px}.segbar .btn{width:100%}}
 @media (max-width:560px){.srow{grid-template-columns:96px minmax(0,1fr) 40px;gap:8px;font-size:13px}.bz-row{grid-template-columns:minmax(0,1fr) 80px 80px}}
 </style>
@@ -847,32 +847,34 @@ function cardFroots(x,st,W){
   if(fr.length===1) drawFroot(x,fr[0],PX+PW-10,base,260,.1);
   if(fr.length===2){drawFroot(x,fr[0],PX+20,base,240,-.1); drawFroot(x,fr[1],PX+PW-20,base,240,.1)}
 }
+// Canvas can't read CSS variables directly: take brand colors from roots-tokens.css, with the old value as fallback.
+function tok(name,fallback){try{return getComputedStyle(document.documentElement).getPropertyValue("--"+name).trim()||fallback}catch(e){return fallback}}
 function statusCard(o){
   var st=stOf(o), copy=CARD_COPY[st]; if(!copy) return null;
   var W=1080,H=1350, cv=document.createElement("canvas"); cv.width=W; cv.height=H; var x=cv.getContext("2d");
-  x.fillStyle="#EDE6D6"; x.fillRect(0,0,W,H);
+  x.fillStyle=tok("hueso","#EDE6D6"); x.fillRect(0,0,W,H);
   var photoArt=!!(CARD_PIC[st]&&CARD_IMG[CARD_PIC[st].photo]);
   if(!photoArt){x.fillStyle="#E4DCC8"; x.beginPath(); x.arc(W/2,560,330,0,Math.PI*2); x.fill()}
   x.textAlign="center"; x.textBaseline="alphabetic";
-  x.fillStyle="#515125"; x.font=cardFont("800",26,"sans"); x.fillText("R O O T S   ·   P E D I D O   "+o.id.split("").join(" "),W/2,96);
+  x.fillStyle=tok("musgo","#515125"); x.font=cardFont("800",26,"sans"); x.fillText("R O O T S   ·   P E D I D O   "+o.id.split("").join(" "),W/2,96);
   x.font=cardFont("400",92,"serif"); x.fillText(copy[0],W/2,212);
   x.font=cardFont("italic 400",92,"serif"); x.fillText(copy[1],W/2,300);
-  x.fillStyle="#5C5A43"; x.font=cardFont("500",32,"sans"); x.fillText(copy[2],W/2,358);
+  x.fillStyle=tok("mute","#5C5A43"); x.font=cardFont("500",32,"sans"); x.fillText(copy[2],W/2,358);
   if(photoArt) cardArt(x,st,W);
   else if(st==="enviado") drawTruck(x,W/2+40,610);
   else if(st==="preparando"||st==="pagado") drawBox(x,W/2,600);
   else drawCluster(x,W/2,590,st==="entregado");
   // order summary card
-  var cy=860, ch=H-cy-110; x.fillStyle="#FFFDF8"; rr(x,72,cy,W-144,ch,36); x.fill();
-  x.textAlign="left"; x.fillStyle="#515125"; x.font=cardFont("800",22,"sans"); x.fillText("PARA",116,cy+64);
+  var cy=860, ch=H-cy-110; x.fillStyle=tok("card","#FFFDF8"); rr(x,72,cy,W-144,ch,36); x.fill();
+  x.textAlign="left"; x.fillStyle=tok("musgo","#515125"); x.font=cardFont("800",22,"sans"); x.fillText("PARA",116,cy+64);
   x.font=cardFont("400",52,"serif"); x.fillText(firstName(o.customer.name)||"vos",116,cy+122);
   var items=(o.lines||[]).map(function(l){var v=lineView(l); return l.qty+"× "+v.name}); var more=items.length>4?items.length-3:0; if(more) items=items.slice(0,3).concat(["+"+more+" más"]);
-  x.font=cardFont("500",30,"sans"); x.fillStyle="#222";
+  x.font=cardFont("500",30,"sans"); x.fillStyle=tok("ink","#222");
   items.forEach(function(t,i){x.fillText(t,116,cy+186+i*44)});
-  x.textAlign="right"; x.fillStyle="#5C5A43"; x.font=cardFont("700",22,"sans"); x.fillText("TOTAL",W-116,cy+64);
-  x.fillStyle="#515125"; x.font=cardFont("400",56,"serif"); x.fillText(fmt(o.total),W-116,cy+124);
-  if(o.zone==="gam"||o.zone==="fuera"){x.font=cardFont("600",24,"sans"); x.fillStyle="#5C5A43"; x.fillText("Envío "+zoneLabel(o.zone),W-116,cy+164)}
-  x.textAlign="center"; x.fillStyle="#515125"; x.font=cardFont("700",26,"sans");
+  x.textAlign="right"; x.fillStyle=tok("mute","#5C5A43"); x.font=cardFont("700",22,"sans"); x.fillText("TOTAL",W-116,cy+64);
+  x.fillStyle=tok("musgo","#515125"); x.font=cardFont("400",56,"serif"); x.fillText(fmt(o.total),W-116,cy+124);
+  if(o.zone==="gam"||o.zone==="fuera"){x.font=cardFont("600",24,"sans"); x.fillStyle=tok("mute","#5C5A43"); x.fillText("Envío "+zoneLabel(o.zone),W-116,cy+164)}
+  x.textAlign="center"; x.fillStyle=tok("musgo","#515125"); x.font=cardFont("700",26,"sans");
   x.fillText("@roots.costarica  ·  WhatsApp 7210-1411",W/2,H-50);
   if(photoArt) cardFroots(x,st,W);
   return cv;
@@ -970,7 +972,7 @@ function exportCsv(){
 
 // ═══════════ VENTAS: directo vs negocios ═══════════
 // Flavor colors are checked for color-blind separation; labels and tables always carry the flavor name too.
-var FCOL={pina:"#D9A414",mango:"#B8650F",fresa:"#D63F72"};
+var FCOL={pina:"var(--flavor-pina)",mango:"var(--flavor-mango)",fresa:"var(--flavor-fresa)"};
 var FORDER=["pina","mango","fresa"];
 var FNAME={pina:"Piña",mango:"Mango",fresa:"Fresa"};
 var SEGS=[["todo","Todo"],["directo","Directo"],["negocios","Negocios"]];

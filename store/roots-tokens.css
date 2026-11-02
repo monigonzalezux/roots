@@ -1,0 +1,47 @@
+/* Roots tokens · generated from design-system/project/tokens.json by tools/build-tokens.mjs.
+   Don't edit this file: change tokens.json (or the Roots design system) and rebuild. */
+:root {
+  --musgo: #515125;
+  --musgo-2: #3e3e1b;
+  --hueso: #ede6d6;
+  --hueso-2: #f5f0e5;
+  --card: #fffdf8;
+  --ink: #222222;
+  --mute: #5c5a43;
+  --miel: #fcc14e;
+  --coral: #f67a57;
+  --lima: #c2c85e;
+  --line: rgba(81,81,37,.16);
+  --line-2: rgba(81,81,37,.32);
+  --flavor-pina: #d9a414;
+  --flavor-mango: #b8650f;
+  --flavor-fresa: #d63f72;
+  --ok: #3f6212;
+  --ok-bg: #e4e9c4;
+  --warn: #7a5200;
+  --warn-bg: #fde9b5;
+  --info: #1e4b6e;
+  --info-bg: #dce9f2;
+  --bad: #9b1c1c;
+  --bad-bg: #fbe1dc;
+  --pur: #5b2c83;
+  --pur-bg: #ede3f5;
+  --font-serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 36px;
+  --space-12: 56px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-pill: 99px;
+  --shadow-drawer: -20px 0 50px rgba(40,40,15,.22);
+  --shadow-toast: 0 16px 40px rgba(40,40,15,.3);
+}

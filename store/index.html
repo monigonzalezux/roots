@@ -5,13 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Roots · Fruta liofilizada</title>
 <link rel="icon" href="img/5e85eacea9000037a164a8e22181911e.png">
+<link rel="stylesheet" href="roots-tokens.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;family=Hanken+Grotesk:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
 <style>
-:root{--musgo:#515125;--musgo-2:#3E3E1B;--hueso:#EDE6D6;--hueso-2:#F5F0E5;--white:#FFFDF8;--ink:#222222;--mute:#5C5A43;--miel:#FCC14E;--coral:#F67A57;--lima:#C2C85E;--line:rgba(81,81,37,.18);--line-2:rgba(81,81,37,.34);
+:root{--white:var(--card);
 --g-mango:linear-gradient(120deg,#FFB547 0%,#FCC14E 35%,#C9CB5E 62%,#F67A57 100%);--g-fresa:linear-gradient(120deg,#F2A69B 0%,#F67A57 60%,#F2643A 100%);--g-pina:linear-gradient(120deg,#FBE08F 0%,#FCC14E 100%);--g-hojas:linear-gradient(120deg,#F6D97A 0%,#C2C85E 100%);
---serif:"Newsreader","Iowan Old Style",Georgia,serif;--sans:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;--ease:cubic-bezier(.2,.8,.2,1)}
+--serif:var(--font-serif);--sans:var(--font-sans);--ease:cubic-bezier(.2,.8,.2,1)}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--hueso);color:var(--musgo);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
@@ -775,7 +776,7 @@ textarea.inp{height:auto;min-height:92px;padding:13px 15px;resize:vertical;line-
 <body>
 <div id="root"></div>
 <script type="text/x-dc-template" id="dc-tpl">
-<div class="app" style="font-family: var(--sans); color: #515125; background: #EDE6D6">
+<div class="app" style="font-family: var(--sans); color: var(--musgo); background: var(--hueso)">
 
 <div class="ann" role="region" aria-label="Anuncios">
 <div class="ann-track">
@@ -995,7 +996,7 @@ textarea.inp{height:auto;min-height:92px;padding:13px 15px;resize:vertical;line-
 <div class="trio-tx">
 <p class="caps">El Trío</p>
 <h2 class="h2" id="trio-title">¿No te decidís? <em>Llevate los tres.</em></h2>
-<p class="lead" style="color: #515125">Una bolsa Grande de mango, una de fresa y una de piña. Ideal para probarlos todos o para compartir.</p>
+<p class="lead" style="color: var(--musgo)">Una bolsa Grande de mango, una de fresa y una de piña. Ideal para probarlos todos o para compartir.</p>
 <div class="pricerow"><span class="bigprice">₡12,000</span><span class="was">3 bolsas Grandes</span></div>
 <div class="btnrow">
 <button type="button" class="btn btn-m" onClick="{{addTrio}}">Agregar el Trío</button>
@@ -2167,7 +2168,8 @@ class Component extends DCLogic {
       var draw = function (H) {
       cv = document.createElement('canvas'); cv.width = W; cv.height = H;
       x = cv.getContext('2d');
-      var MUS = '#515125', HUE = '#EDE6D6', CARD = '#FFFDF8', MUTE = '#6B6950', CORAL = '#F67A57', MIEL = '#FCC14E';
+      var tok = function (n, f) { try { return getComputedStyle(document.documentElement).getPropertyValue('--' + n).trim() || f; } catch (e) { return f; } };
+      var MUS = tok('musgo', '#515125'), HUE = tok('hueso', '#EDE6D6'), CARD = tok('card', '#FFFDF8'), MUTE = '#6B6950', CORAL = tok('coral', '#F67A57'), MIEL = tok('miel', '#FCC14E');
       var SERIF = '"Newsreader", Georgia, serif', SANS = '"Hanken Grotesk", system-ui, sans-serif';
       var rr = function (X, Y, w, h, r) { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r); x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r); x.arcTo(X, Y, X + w, Y, r); x.closePath(); };
       var spaced = function (t, X, Y, sp, align) { var w = 0, i; for (i = 0; i < t.length; i++) w += x.measureText(t[i]).width + sp; w -= sp; var s = align === 'center' ? X - w / 2 : align === 'right' ? X - w : X; for (i = 0; i < t.length; i++) { x.fillText(t[i], s, Y); s += x.measureText(t[i]).width + sp; } };

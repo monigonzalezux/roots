@@ -43,6 +43,9 @@ Orders are also written to the tab **Pedidos tienda** in the owners' sheet: one 
 3. **Deploy → New deployment → Web app**: Execute as **Me**, Who has access **Anyone**. Copy the `…/exec` URL.
 4. In `supabase/sheet-sync.sql`, replace `PASTE_WEB_APP_URL_HERE` with that URL, then run it in the Supabase SQL Editor.
 
+## Brand tokens
+Colors, fonts, spacing, radii and shadows live in `design-system/project/tokens.json` (the Roots design system). `node tools/build-tokens.mjs store/roots-tokens.css panel/roots-tokens.css` writes them as CSS variables; Netlify runs the same script on every deploy. Change a token there, not in the pages.
+
 ## Removing an owner
 Delete their row: `delete from public.owners where email = '...';`, and remove the user under **Authentication → Users**.
 
