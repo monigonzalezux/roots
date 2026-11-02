@@ -6,3 +6,4 @@ local/
 store/config.js
 panel/config.js
 .dev/
+.claude/

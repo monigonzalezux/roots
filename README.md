@@ -21,7 +21,8 @@ Two static sites that share one Supabase database.
 
 ### 1. Supabase
 1. Create a project at supabase.com (the Free plan is enough to start).
-2. **SQL Editor → New query**: paste all of `supabase/schema.sql`, then **Run**. Then do the same with `supabase/002-manual-orders.sql` (manual orders) and `supabase/003-business-and-expenses.sql` (business sales, expenses, and who changed what).
+2. **SQL Editor → New query**: paste all of `supabase/schema.sql`, then **Run**. Then do the same with `supabase/002-manual-orders.sql` (manual orders) `supabase/003-business-and-expenses.sql` (business sales, expenses, and who changed what) and `supabase/004-activity-log.sql` (the activity log in Ajustes).
+   To load the owners' spreadsheet once: `python3 tools/import_excel.py "<file>.xlsx" local/005-import-excel.sql`, then run that file. It checks its monthly totals against the sheet's SUMMARY, refuses to run twice, and doesn't move inventory.
 3. **Authentication → Sign In / Providers**: turn **off** "Allow new users to sign up". Owners are invited instead.
 4. **Authentication → URL Configuration**: set **Site URL** to the panel's address, for example `https://roots-panel.netlify.app`.
 5. For each owner:

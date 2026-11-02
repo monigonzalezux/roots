@@ -402,7 +402,7 @@ function waText(o){var n=firstName(o.customer.name), id=o.id, t=fmt(o.total), st
 function waLink(o){var d=digits(o.customer.phone); if(d.length===8)d="506"+d; return d.length>=11?"https://wa.me/"+d+"?text="+encodeURIComponent(waText(o)):""}
 
 // ─────────── state ───────────
-var S={sb:null,session:null,downloads:{save:saveFile},admin:false,ready:false,authView:"login",authMsg:"",authErr:"",chan:null,poll:null,pseg:lsGet("roots.pseg")||"todo",vperiod:lsGet("roots.vperiod")||"mes",seg:lsGet("roots.seg")||"todo",gperiod:lsGet("roots.gperiod")||"mes",expenses:[],ownerNames:{},
+var S={sb:null,session:null,downloads:{save:saveFile},admin:false,ready:false,authView:"login",authMsg:"",authErr:"",chan:null,poll:null,pseg:lsGet("roots.pseg")||"todo",vperiod:lsGet("roots.vperiod")||"mes",seg:lsGet("roots.seg")||"todo",gperiod:lsGet("roots.gperiod")||"mes",expenses:[],ownerNames:{},activity:[],actN:40,actQ:"",
   config:null,orders:[],ordersLoaded:false,log:[],
   demo:false,demoOrders:null,
   period:lsGet("roots.period")||"mes", filter:"activos", q:"", selected:null, rejecting:false, receiptCache:{},
@@ -623,7 +623,7 @@ function ajustes(){
     '<section class="card" aria-labelledby="cost-t" style="display:grid;gap:14px"><h2 class="h2" id="cost-t">Costo por bolsa</h2><p class="mute" style="margin:0;font-size:13.5px">Lo que les cuesta producir cada bolsa (fruta, empaque, mano de obra). Con esto calculamos la ganancia.</p>'+
     '<div class="fgrid"><div class="field"><label for="c-cg">Grande (₡)</label><input class="inp" id="c-cg" inputmode="numeric" value="'+esc(c.cost.g||"")+'" placeholder="0"></div><div class="field"><label for="c-cm">Mini (₡)</label><input class="inp" id="c-cm" inputmode="numeric" value="'+esc(c.cost.m||"")+'" placeholder="0"></div></div></section>'+
     '<section class="card" style="display:grid;gap:8px"><h2 class="h2">Precios de la tienda</h2><p class="mute" style="margin:0;font-size:13.5px">Grandes ₡4,000 · 5+ ₡3,500 · 10+ ₡3,200<br>Minis ₡1,500 · 6+ ₡1,350 · 12+ ₡1,250</p><p class="mute" style="margin:0;font-size:12.5px">Para cambiar precios hay que actualizar la tienda. Escribile a Moni.</p></section>'+
-    '<button type="submit" class="btn btn-m" id="c-save">'+(isNew?'Crear configuración':'Guardar cambios')+'</button></div></form>';
+    '<button type="submit" class="btn btn-m" id="c-save">'+(isNew?'Crear configuración':'Guardar cambios')+'</button></div></form>'+activityCard();
 }
 
 // ═══════════ BINDINGS ═══════════
@@ -651,6 +651,7 @@ function bind(v){
       moveStock(m, neg?"Salida manual":"Entrada manual").then(function(){toast(sku(id).name+": inventario actualizado")})}});
   }
   if(v==="ajustes"){
+    bindActivity();
     var f=$("#setf"); $("#c-num").oninput=function(e){e.target.value=fmtPhone(e.target.value)};
     f.onsubmit=function(e){e.preventDefault(); var isNew=!S.config, c=cfg(), stock={};
       SKUS.forEach(function(s){var cur=(c.stock[s.id]||{}).stock||0; stock[s.id]={stock:isNew?int($("#sk-"+s.id).value):cur,low:int($("#lw-"+s.id).value)}});
@@ -1025,6 +1026,24 @@ function ventasNegocios(biz){
     '</div>';
 }
 
+// ═══════════ REGISTRO DE ACTIVIDAD (Ajustes) ═══════════
+function actor(a){if(a.by==="Excel") return "Carga del Excel"; if(a.by) return who(a.by); return a.action==="Pedido de la tienda"?"Cliente (tienda)":"Sistema"}
+function activityCard(){
+  var q=S.actQ.trim().toLowerCase(), list=S.activity.filter(function(a){return !q||(a.action+" "+a.details+" "+actor(a)).toLowerCase().indexOf(q)>=0});
+  var shown=list.slice(0,S.actN);
+  var rows=shown.map(function(a){var isOrder=/^RTS-\d+$/.test(a.ref);
+    return '<tr><td class="mute" style="white-space:nowrap">'+esc(fmtDT(a.at))+'</td><td><b>'+esc(actor(a))+'</b></td><td style="white-space:nowrap">'+esc(a.action)+'</td><td>'+(isOrder?'<button type="button" class="link" data-act-o="'+esc(a.ref)+'">'+esc(a.details)+'</button>':esc(a.details))+'</td></tr>'}).join("");
+  return '<section class="card chart-card" aria-labelledby="act-t" style="margin-top:16px"><div class="ch"><div><h2 class="h2" id="act-t">Registro de actividad</h2><p class="mute" style="margin:4px 0 0;font-size:13px">Todo lo que se cambia en el panel, quién lo hizo y cuándo. También los pedidos que llegan de la tienda.</p></div>'+
+    '<div class="search" style="margin:0"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><label class="sr" for="act-q">Buscar en el registro</label><input id="act-q" class="inp" placeholder="Buscar: persona, pedido, acción…" value="'+esc(S.actQ)+'"></div></div>'+
+    (rows?'<div class="tbl-wrap flat"><table class="t" style="min-width:640px"><thead><tr><th>Cuándo</th><th>Quién</th><th>Qué</th><th>Detalle</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="empty-chart">'+(S.activity.length?'Nada coincide con la búsqueda.':'Todavía no hay actividad registrada.')+'</p>')+
+    (list.length>shown.length?'<button type="button" class="btn btn-o btn-sm" id="act-more" style="justify-self:start">Ver más ('+(list.length-shown.length)+')</button>':'')+'</section>';
+}
+function bindActivity(){
+  var qi=$("#act-q"); if(qi) qi.oninput=function(){S.actQ=qi.value; S.actN=40; var pos=qi.selectionStart; render(); var n=$("#act-q"); n.focus(); try{n.setSelectionRange(pos,pos)}catch(e){}};
+  var mo=$("#act-more"); if(mo) mo.onclick=function(){S.actN+=60; render()};
+  $$("[data-act-o]").forEach(function(b){b.onclick=function(){openOrder(b.dataset.actO)}});
+}
+
 // ═══════════ GASTOS ═══════════
 function gastos(){
   var r=range(S.gperiod), list=expInRange(r).sort(function(a,b){return a.spent_on<b.spent_on?1:a.spent_on>b.spent_on?-1:b.id-a.id});
@@ -1127,6 +1146,7 @@ function openBizSale(){
   };
   setTimeout(function(){$("#bz-g-pina").focus()},30);
 }
+function loadActivity(){return S.sb.from("activity_log").select("*").order("at",{ascending:false}).limit(1000).then(function(r){if(!r.error) S.activity=r.data})}
 function loadExpenses(){return S.sb.from("expenses").select("*").order("spent_on",{ascending:false}).limit(5000).then(function(r){if(!r.error) S.expenses=r.data})}
 function loadOwners(){return S.sb.from("owners").select("email,name").then(function(r){if(!r.error){var m={}; r.data.forEach(function(x){if(x.name) m[x.email]=x.name}); S.ownerNames=m}})}
 
@@ -1186,7 +1206,7 @@ function loadOrders(){return S.sb.from("orders").select("*").order("created_at",
   if(fresh.length) toast("Nuevo pedido "+fresh[0].id+" · "+fmt(fresh[0].total));
 })}
 function repaint(){if(busy()){updateBadge(); if(S.selected) renderDrawer(); return} render()}
-function refreshAll(){return Promise.all([loadConfig(),loadOrders(),loadLog(),loadExpenses(),loadOwners()]).then(repaint)}
+function refreshAll(){return Promise.all([loadConfig(),loadOrders(),loadLog(),loadExpenses(),loadOwners(),loadActivity()]).then(repaint)}
 var liveT; function liveRefresh(){clearTimeout(liveT); liveT=setTimeout(refreshAll,400)}
 function startLive(){
   stopLive();
@@ -1195,6 +1215,7 @@ function startLive(){
     .on("postgres_changes",{event:"*",schema:"public",table:"settings"},liveRefresh)
     .on("postgres_changes",{event:"*",schema:"public",table:"inventory_log"},liveRefresh)
     .on("postgres_changes",{event:"*",schema:"public",table:"expenses"},liveRefresh)
+    .on("postgres_changes",{event:"*",schema:"public",table:"activity_log"},liveRefresh)
     .subscribe();
   S.poll=setInterval(refreshAll,60000);
 }
