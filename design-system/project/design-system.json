@@ -1,0 +1,131 @@
+{
+ "v": 3,
+ "layout": "files",
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-11-02T01:28:34Z"
+ },
+ "title": "Roots",
+ "namespace": "Roots",
+ "libraries": [],
+ "sections": {},
+ "groups": [
+  "Logos",
+  "Froots",
+  "Photography"
+ ],
+ "assetGroups": {
+  "Logos": {
+   "name": "Logos",
+   "tile": "m",
+   "order": [
+    "roots-wordmark.png",
+    "roots-mark.png"
+   ],
+   "files": {
+    "roots-wordmark.png": {
+     "name": "roots-wordmark.png",
+     "blob": "96625089e646393de46b8977f5a5bab1",
+     "size": 13320,
+     "type": "image/png"
+    },
+    "roots-mark.png": {
+     "name": "roots-mark.png",
+     "blob": "e24cf915611da85b38163d36fdd8a9e8",
+     "size": 13099,
+     "type": "image/png"
+    }
+   }
+  },
+  "Froots": {
+   "name": "Froots",
+   "tile": "m",
+   "order": [
+    "froot-mango.png",
+    "froot-fresa.png",
+    "froot-pina.png",
+    "froots-group.png"
+   ],
+   "files": {
+    "froot-mango.png": {
+     "name": "froot-mango.png",
+     "blob": "02d2716e6f10f28055377548ab7807d6",
+     "size": 92710,
+     "type": "image/png"
+    },
+    "froot-fresa.png": {
+     "name": "froot-fresa.png",
+     "blob": "f73c819eaa6c0d09dc01352cb45c181e",
+     "size": 105529,
+     "type": "image/png"
+    },
+    "froot-pina.png": {
+     "name": "froot-pina.png",
+     "blob": "03bfe8df837810a2d8228f22d75bfde1",
+     "size": 85277,
+     "type": "image/png"
+    },
+    "froots-group.png": {
+     "name": "froots-group.png",
+     "blob": "c84c962c64b624ba6d1e86b5ed80e934",
+     "size": 159866,
+     "type": "image/png"
+    }
+   }
+  },
+  "Photography": {
+   "name": "Photography",
+   "tile": "l",
+   "order": [
+    "trio.jpg",
+    "trio2.jpg",
+    "sizes.jpg",
+    "pockets.jpg",
+    "hold.jpg"
+   ],
+   "files": {
+    "trio.jpg": {
+     "name": "trio.jpg",
+     "blob": "9b620c401c1ec92405b38fee859c447e",
+     "size": 69699,
+     "type": "image/jpeg"
+    },
+    "trio2.jpg": {
+     "name": "trio2.jpg",
+     "blob": "7244df240b1c97bc41d0018c5f581c1b",
+     "size": 99697,
+     "type": "image/jpeg"
+    },
+    "sizes.jpg": {
+     "name": "sizes.jpg",
+     "blob": "09054c927991ee57650aa4da0ae72f67",
+     "size": 124915,
+     "type": "image/jpeg"
+    },
+    "pockets.jpg": {
+     "name": "pockets.jpg",
+     "blob": "c926545e824ed11ba19ff326ca6cc895",
+     "size": 223228,
+     "type": "image/jpeg"
+    },
+    "hold.jpg": {
+     "name": "hold.jpg",
+     "blob": "ac2b8da9a5a35a1e104b0acfbd2da16d",
+     "size": 176705,
+     "type": "image/jpeg"
+    }
+   }
+  }
+ },
+ "blobs": {},
+ "docs": {
+  "readme": "project/README.md",
+  "sections": []
+ },
+ "lastChange": {
+  "by": "Moni González",
+  "at": "2026-11-02T01:28:34Z",
+  "via": "GitHub · monigonzalezux/roots@e48a437",
+  "note": "First version, built from the store and panel code."
+ }
+}

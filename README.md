@@ -73,6 +73,7 @@ A script turns the owners' spreadsheet into one database load: about 330 past sa
 | Panel | Plain HTML/CSS/JS, no build step |
 | Data | Supabase: Postgres, Auth, row-level security, Realtime ([`supabase/`](supabase/)) |
 | Hosting | Netlify, deployed from GitHub on every push; keys come from environment variables |
+| Design system | Tokens, brand book and components extracted from this code into a Claude Design system ([`design-system/`](design-system/project/README.md)), so new designs start from the shipped product |
 | Extras | Google Apps Script sheet sync ([`sheets/Code.gs`](sheets/Code.gs)); spreadsheet importer ([`tools/import_excel.py`](tools/import_excel.py)) |
 
 Designed and built with Claude (Claude Design for the storefront, Claude Code for the build).
