@@ -805,17 +805,61 @@ function drawCluster(x,cx,cy,heart){
   if(heart){x.save(); x.translate(cx+250,cy-130); x.fillStyle="#F67A57"; x.beginPath(); x.moveTo(0,30); x.bezierCurveTo(-60,-10,-30,-60,0,-30); x.bezierCurveTo(30,-60,60,-10,0,30); x.fill(); x.restore()}
 }
 function wrapText(x,text,maxW){var words=String(text).split(" "),lines=[],cur=""; words.forEach(function(w){var t=cur?cur+" "+w:w; if(x.measureText(t).width>maxW&&cur){lines.push(cur); cur=w}else cur=t}); if(cur)lines.push(cur); return lines}
+// Real product photos and the Froots for each status (files in panel/img).
+var CARD_PIC={
+  por_verificar:{photo:"trio",fy:.62,froots:["fresa","pina"]},
+  pagado:{photo:"sizes",fy:.4,froots:["mango"]},
+  preparando:{photo:"trio2",fy:.55,froots:["pina"]},
+  enviado:{photo:"pockets",fy:.55,froots:["mango"]},
+  entregado:{photo:"hold",fy:.72,group:true}
+};
+var CARD_IMG={}, cardImgsP=null;
+function cardImages(){
+  if(cardImgsP) return cardImgsP;
+  var names=["trio","sizes","trio2","pockets","hold"].map(function(n){return [n,"img/"+n+".jpg"]}).concat(["mango","fresa","pina"].map(function(n){return ["froot-"+n,"img/froot-"+n+".png"]}),[["froots","img/froots.png"]]);
+  cardImgsP=Promise.all(names.map(function(n){return new Promise(function(res){var im=new Image(); im.onload=function(){CARD_IMG[n[0]]=im; res()}; im.onerror=function(){res()}; im.src=n[1]})}));
+  return cardImgsP;
+}
+function drawCover(x,im,X,Y,W,H,fy){
+  var sc=Math.max(W/im.width,H/im.height), sw=W/sc, sh=H/sc;
+  x.drawImage(im,(im.width-sw)/2,(im.height-sh)*fy,sw,sh,X,Y,W,H);
+}
+function drawFroot(x,im,cx,bottom,h,rot){
+  var w=h*im.width/im.height; x.save(); x.translate(cx,bottom); x.rotate(rot||0);
+  x.shadowColor="rgba(40,40,15,.18)"; x.shadowBlur=18; x.shadowOffsetY=8; x.drawImage(im,-w/2,-h,w,h); x.restore();
+}
+// Photo framed in an arch, with Froots peeking in from the sides. Falls back to the drawings if photos didn't load.
+function cardArt(x,st,W){
+  var pic=CARD_PIC[st], photo=pic&&CARD_IMG[pic.photo];
+  if(!photo) return false;
+  var PW=620, PH=430, PX=(W-PW)/2, PY=400;
+  x.save(); x.beginPath(); x.moveTo(PX,PY+PW/2); x.arc(PX+PW/2,PY+PW/2,PW/2,Math.PI,0); x.lineTo(PX+PW,PY+PH-28); x.arcTo(PX+PW,PY+PH,PX+PW-28,PY+PH,28); x.lineTo(PX+28,PY+PH); x.arcTo(PX,PY+PH,PX,PY+PH-28,28); x.closePath();
+  x.save(); x.shadowColor="rgba(40,40,15,.16)"; x.shadowBlur=30; x.shadowOffsetY=10; x.fillStyle="#E4DCC8"; x.fill(); x.restore();
+  x.clip(); drawCover(x,photo,PX,PY,PW,PH,pic.fy); x.restore();
+  return true;
+}
+// Drawn after the order summary, so the Froots stand in front of it.
+function cardFroots(x,st,W){
+  var pic=CARD_PIC[st]; if(!pic) return;
+  var PW=620, PX=(W-PW)/2, base=900;
+  if(pic.group&&CARD_IMG.froots){var gi=CARD_IMG.froots, gw=560, gh=gw*gi.height/gi.width; x.save(); x.shadowColor="rgba(40,40,15,.15)"; x.shadowBlur=16; x.shadowOffsetY=6; x.drawImage(gi,(W-gw)/2,base-12-gh,gw,gh); x.restore(); return}
+  var fr=(pic.froots||[]).map(function(n){return CARD_IMG["froot-"+n]}).filter(Boolean);
+  if(fr.length===1) drawFroot(x,fr[0],PX+PW-10,base,260,.1);
+  if(fr.length===2){drawFroot(x,fr[0],PX+20,base,240,-.1); drawFroot(x,fr[1],PX+PW-20,base,240,.1)}
+}
 function statusCard(o){
   var st=stOf(o), copy=CARD_COPY[st]; if(!copy) return null;
   var W=1080,H=1350, cv=document.createElement("canvas"); cv.width=W; cv.height=H; var x=cv.getContext("2d");
   x.fillStyle="#EDE6D6"; x.fillRect(0,0,W,H);
-  x.fillStyle="#E4DCC8"; x.beginPath(); x.arc(W/2,560,330,0,Math.PI*2); x.fill();
+  var photoArt=!!(CARD_PIC[st]&&CARD_IMG[CARD_PIC[st].photo]);
+  if(!photoArt){x.fillStyle="#E4DCC8"; x.beginPath(); x.arc(W/2,560,330,0,Math.PI*2); x.fill()}
   x.textAlign="center"; x.textBaseline="alphabetic";
   x.fillStyle="#515125"; x.font=cardFont("800",26,"sans"); x.fillText("R O O T S   ·   P E D I D O   "+o.id.split("").join(" "),W/2,96);
   x.font=cardFont("400",92,"serif"); x.fillText(copy[0],W/2,212);
   x.font=cardFont("italic 400",92,"serif"); x.fillText(copy[1],W/2,300);
   x.fillStyle="#5C5A43"; x.font=cardFont("500",32,"sans"); x.fillText(copy[2],W/2,358);
-  if(st==="enviado") drawTruck(x,W/2+40,610);
+  if(photoArt) cardArt(x,st,W);
+  else if(st==="enviado") drawTruck(x,W/2+40,610);
   else if(st==="preparando"||st==="pagado") drawBox(x,W/2,600);
   else drawCluster(x,W/2,590,st==="entregado");
   // order summary card
@@ -830,6 +874,7 @@ function statusCard(o){
   if(o.zone==="gam"||o.zone==="fuera"){x.font=cardFont("600",24,"sans"); x.fillStyle="#5C5A43"; x.fillText("Envío "+zoneLabel(o.zone),W-116,cy+164)}
   x.textAlign="center"; x.fillStyle="#515125"; x.font=cardFont("700",26,"sans");
   x.fillText("@roots.costarica  ·  WhatsApp 7210-1411",W/2,H-50);
+  if(photoArt) cardFroots(x,st,W);
   return cv;
 }
 function cardBlob(cv){return new Promise(function(res){cv.toBlob(function(b){res(b)},"image/png")})}
@@ -844,7 +889,7 @@ function notifyBlock(o){
 function bindNotify(o){
   var prev=$("#nt-prev"); if(!prev) return;
   var make=function(){return statusCard(o)};
-  (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){var cv=make(); if(cv&&$("#nt-prev")) $("#nt-prev").src=cv.toDataURL("image/jpeg",.8)});
+  Promise.all([document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve(),cardImages()]).then(function(){var cv=make(); if(cv&&$("#nt-prev")) $("#nt-prev").src=cv.toDataURL("image/jpeg",.8)});
   var name="Roots-"+o.id+"-"+stOf(o)+".png";
   var save=function(){var cv=make(); if(!cv||!S.downloads) return; cardBlob(cv).then(function(b){return S.downloads.save({filename:name,data:b})}).then(function(){toast("Imagen guardada")},function(e){if(e&&e.code!=="declined") toast("No se pudo guardar la imagen")})};
   var wa=$("#nt-wa");
