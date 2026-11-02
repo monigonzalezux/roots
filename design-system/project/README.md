@@ -22,8 +22,8 @@ The brand is olive and bone, with honey, coral and lime as accents. It has one t
 
 ## Type
 
-- **Newsreader** (`serif`) for display: page titles, card titles and big numbers. The second half of a title goes in italic: "Directo y *negocios.*"
-- **Hanken Grotesk** (`sans`) for everything else. Labels and buttons in 700, eyebrows (`caps`) in 800, uppercase, 0.14em tracking.
+- **Newsreader** (`serif`) only for page titles in the panel and big display lines in the store. The second half of a title goes in italic: "Directo y *negocios.*"
+- **Hanken Grotesk** (`sans`) for everything else, card titles and big numbers included, so the panel reads clean. Labels and buttons in 700, eyebrows (`caps`) in 800, uppercase, 0.14em tracking.
 - The brand book specifies Affairs, Lumiere and ALS Hauss. None of them is licensed for the web yet, so Newsreader and Hanken Grotesk stand in until they are.
 
 ## Shape and space

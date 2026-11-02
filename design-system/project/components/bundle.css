@@ -7,7 +7,7 @@ body{margin:0;background:var(--hueso);color:var(--ink);font-family:var(--sans);f
 .caps{font-weight:800;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--musgo);margin:0}
 .mute{color:var(--mute)}
 .h1{font-family:var(--serif);font-weight:400;font-size:44px;line-height:1.05;letter-spacing:-.02em;margin:0;color:var(--musgo)}
-.h2{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.15;margin:0;color:var(--musgo)}
+.h2{font-family:var(--sans);font-weight:700;font-size:19px;line-height:1.25;letter-spacing:-.01em;margin:0;color:var(--musgo)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px}
 /* Button */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 20px;border-radius:99px;border:0;font:inherit;font-weight:700;font-size:14.5px;cursor:pointer;white-space:nowrap;transition:background .15s}
@@ -41,7 +41,7 @@ body{margin:0;background:var(--hueso);color:var(--ink);font-family:var(--sans);f
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px;display:grid;gap:4px}
 .kpi .lb{font-size:13px;color:var(--mute);font-weight:600}
-.kpi b{font-family:var(--serif);font-weight:400;font-size:38px;line-height:1.05;color:var(--musgo);font-variant-numeric:tabular-nums}
+.kpi b{font-family:var(--sans);font-weight:700;font-size:32px;line-height:1.1;letter-spacing:-.02em;color:var(--musgo);font-variant-numeric:tabular-nums}
 .kpi .note{font-size:12.5px;font-weight:700;color:var(--mute)}
 /* FlavorStackBar */
 .fdot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px;vertical-align:-1px}
