@@ -1952,6 +1952,7 @@ class Component extends DCLogic {
   }
 
   go(view, extra) {
+    ROOTS.track('view', { page: view });
     var patch = Object.assign({ view: view, cartOpen: false, addedOpen: false, menuOpen: false }, extra || {});
     var self = this;
     try { document.body.style.overflow = ''; } catch (e) {}
@@ -1993,6 +1994,7 @@ class Component extends DCLogic {
   }
   closeAdded() { try { document.body.style.overflow = ''; } catch (e) {} this.setState({ addedOpen: false }); }
   addSingle(fid, size, n) {
+    ROOTS.track('add_to_cart', { item: size + '-' + fid, qty: n || 1 });
     n = n || 1;
     var id = 's:' + size + ':' + fid, cart = this.state.cart.map(function (l) { return Object.assign({}, l); });
     var line = cart.filter(function (l) { return l.id === id; })[0];
@@ -2005,6 +2007,7 @@ class Component extends DCLogic {
       { name: f.name + (size === 'm' ? ' Mini' : ' Grande') + (n > 1 ? ' × ' + n : ''), sub: SIZES[size].label + ' · ' + f.weight[size], img: img, thCls: '' });
   }
   addPack(size, n, mix, label, absorb) {
+    ROOTS.track('add_to_cart', { item: 'pack-' + size + '-' + n });
     var key = FLAVORS.map(function (f) { return mix[f.id] || 0; }).join('-');
     var id = 'p:' + size + ':' + n + ':' + key, cart = this.state.cart.map(function (l) { return Object.assign({}, l); });
     if (absorb) {
@@ -2033,6 +2036,7 @@ class Component extends DCLogic {
     this.setState({ cart: cart, live: q <= 0 ? 'Producto quitado del carrito' : 'Cantidad: ' + q });
   }
   openCart() {
+    ROOTS.track('open_cart');
     var self = this;
     try { document.body.style.overflow = 'hidden'; } catch (e) {}
     this.setState({ cartOpen: true, justAdded: false, addedOpen: false, menuOpen: false, toast: '' }, function () {
@@ -2093,14 +2097,14 @@ class Component extends DCLogic {
     }
     for (var i = 0; i < FIELDS.length; i++) { if (errs[FIELDS[i]]) { first = FIELDS[i]; break; } }
     if (first) {
-      this.setState({ tried: true, live: 'Revisá los campos marcados.' }, function () { var el = document.getElementById('f-' + first); if (el) el.focus(); });
+      ROOTS.track('form_error', { field: first }); this.setState({ tried: true, live: 'Revisá los campos marcados.' }, function () { var el = document.getElementById('f-' + first); if (el) el.focus(); });
       return;
     }
     var self = this, toTop = function () { try { window.scrollTo(0, 0); } catch (err) {} };
     if (this.state.orderRef) { this.setState({ step: 2, netErr: '' }, toTop); return; }
     if (this.state.submitting) return;
     this.setState({ submitting: true, netErr: '' });
-    ROOTS.reserveRef().then(function (ref) { self.setState({ step: 2, orderRef: ref, submitting: false }, toTop); },
+    ROOTS.reserveRef().then(function (ref) { ROOTS.track('payment_step'); self.setState({ step: 2, orderRef: ref, submitting: false }, toTop); },
       function () { self.setState({ submitting: false, netErr: 'No pudimos conectar con la tienda. Revisá tu conexión e intentá de nuevo.' }); });
   }
   handleFile(f) {
@@ -2110,7 +2114,7 @@ class Component extends DCLogic {
     var self = this;
     var size = f.size > 1024 * 1024 ? (f.size / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(f.size / 1024)) + ' KB';
     var reader = new FileReader();
-    reader.onload = function () { self.setState({ receipt: { name: f.name, size: size, url: reader.result }, rErr: '', live: 'Comprobante listo: ' + f.name }); };
+    reader.onload = function () { ROOTS.track('receipt_added'); self.setState({ receipt: { name: f.name, size: size, url: reader.result }, rErr: '', live: 'Comprobante listo: ' + f.name }); };
     reader.onerror = function () { self.setState({ rErr: 'No pudimos leer la imagen. Probá de nuevo.' }); };
     reader.readAsDataURL(f);
   }

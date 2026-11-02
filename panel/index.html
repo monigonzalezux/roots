@@ -311,6 +311,13 @@ textarea.inp{height:auto;min-height:72px;padding:10px 12px;resize:vertical}
 .hist b{color:var(--ink);font-weight:700}
 /* próximo mejor paso · favorita de siempre */
 .dash-top{margin-bottom:16px}
+.fn{display:grid;gap:10px}
+.fn-row{display:grid;grid-template-columns:minmax(130px,190px) minmax(0,1fr) 48px 48px minmax(0,170px);gap:12px;align-items:center;font-size:14px}
+.fn-tr{height:14px;border-radius:99px;background:var(--hueso-2);overflow:hidden}
+.fn-tr i{display:block;height:100%;background:var(--musgo);border-radius:99px}
+.fn-n{font-weight:800;text-align:right}.fn-p{color:var(--mute);text-align:right}.fn-d{font-size:12.5px;color:var(--mute)}
+.facts.fn-facts{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+@media (max-width:640px){.fn-row{grid-template-columns:minmax(0,1fr) 40px 44px;row-gap:6px}.fn-tr{grid-column:1/-1;grid-row:2}.fn-d{display:none}}
 .nb-list{list-style:none;margin:0;padding:0;display:grid}
 .nb-list>li{border-top:1px solid var(--line)}.nb-list>li:first-child{border-top:0}
 .nb-i summary{display:flex;align-items:center;gap:12px;padding:11px 0;cursor:pointer;list-style:none;min-height:44px}
@@ -1215,7 +1222,7 @@ function ventas(){
     var older=sold(data()).filter(function(o){return inSeg(o,S.seg)}).length;
     if(older) head+='<div class="alertbar" role="status"><span><b>No hay '+(S.seg==="negocios"?'ventas a negocios':S.seg==="directo"?'ventas directas':'ventas')+' en '+esc(VPERIODS.filter(function(p){return p[0]===S.vperiod})[0][1].toLowerCase())+'.</b> Hay '+older+' en total.</span><button type="button" class="btn btn-sm btn-m" data-vperiod="todo">Ver todo</button></div>';
   }
-  if(S.seg==="directo") return head+ventasDirecto(dir);
+  if(S.seg==="directo") return head+ventasDirecto(dir,r);
   if(S.seg==="negocios") return head+ventasNegocios(biz);
   return head+ventasTodo(dir,biz,expInRange(r));
 }
@@ -1234,7 +1241,7 @@ function ventasTodo(dir,biz,exp){
     '</div>';
 }
 
-function ventasDirecto(dir){
+function ventasDirecto(dir,r){
   var rev=revenue(dir), bags={}; SKUS.forEach(function(s){bags[s.id]=0});
   dir.forEach(function(o){var b=bagsOf(o); Object.keys(b).forEach(function(k){bags[k]=(bags[k]||0)+b[k]})});
   var tb=SKUS.reduce(function(a,s){return a+bags[s.id]},0), maxB=Math.max.apply(null,[1].concat(SKUS.map(function(s){return bags[s.id]})));
@@ -1248,7 +1255,7 @@ function ventasDirecto(dir){
       '<div class="tbl-wrap flat"><table class="t" style="min-width:420px"><thead><tr><th>Producto</th><th class="r">Bolsas</th><th class="r">Share</th><th><span class="sr">Barra</span></th></tr></thead><tbody>'+rows+
       '<tr class="tot"><td><b>Total</b></td><td class="r num"><b>'+tb+'</b></td><td class="r num">100%</td><td></td></tr></tbody></table></div></section>'+
     '<section class="card chart-card" aria-labelledby="d-ch"><h2 class="h2" id="d-ch">Por canal</h2>'+chHtml+'</section>'+
-    '</div>';
+    funnelCard(r)+'</div>';
 }
 
 function ventasNegocios(biz){
@@ -1320,6 +1327,39 @@ function bindActivity(){
   var qi=$("#act-q"); if(qi) qi.oninput=function(){S.actQ=qi.value; S.actN=40; var pos=qi.selectionStart; render(); var n=$("#act-q"); n.focus(); try{n.setSelectionRange(pos,pos)}catch(e){}};
   var mo=$("#act-more"); if(mo) mo.onclick=function(){S.actN+=60; render()};
   $$("[data-act-o]").forEach(function(b){b.onclick=function(){openOrder(b.dataset.actO)}});
+}
+
+// ═══════════ EMBUDO DE LA TIENDA (Ventas · Directo) ═══════════
+// Totals of the store's anonymous steps for the chosen period (supabase/006-store-funnel.sql).
+var FIELD_NAME={name:"Nombre",phone:"Teléfono",email:"Correo",prov:"Provincia",canton:"Cantón",distrito:"Distrito",addr:"Dirección",waze:"Link de Waze"};
+function funnelCard(r){
+  var key=r.s.toISOString()+"|"+r.e.toISOString().slice(0,13);
+  if(!S.funnel||S.funnel.key!==key){
+    S.funnel={key:key,data:null};
+    if(S.sb&&!S.demo) S.sb.rpc("store_funnel",{p_from:r.s.toISOString(),p_to:r.e.toISOString()}).then(function(res){
+      if(!S.funnel||S.funnel.key!==key) return;
+      S.funnel.data=res.error?{error:true}:(res.data||{sessions:0});
+      if(view()==="ventas"&&!busy()) render();
+    });
+  }
+  var f=S.funnel.data;
+  var wrap=function(inner){return '<section class="card chart-card wide" aria-labelledby="fn-t"><div><h2 class="h2" id="fn-t">Embudo de la tienda</h2><p class="mute" style="margin:2px 0 0;font-size:13px">Visitas anónimas a la tienda en línea, paso a paso. Sin nombres ni datos personales.</p></div>'+inner+'</section>'};
+  if(S.demo) return wrap('<p class="empty-chart">El embudo usa visitas reales: no tiene datos de ejemplo.</p>');
+  if(!f) return wrap('<p class="empty-chart">Cargando…</p>');
+  if(f.error) return wrap('<p class="empty-chart">El embudo todavía no está activado en la base de datos.</p>');
+  if(!f.sessions) return wrap('<p class="empty-chart">Sin visitas registradas en este período'+(f.first_event?'. El conteo empezó el '+esc(fmtDate(f.first_event,{day:"numeric",month:"long"}))+'.':'. El conteo empieza con la próxima visita.')+'</p>');
+  var steps=[["Visitaron la tienda",f.sessions],["Agregaron al carrito",f.added],["Empezaron el checkout",f.checkout],["Llegaron al pago",f.payment],["Enviaron el pedido",f.ordered]];
+  var rows=steps.map(function(s,i){var prev=i?steps[i-1][1]:s[1], drop=i&&prev?Math.round((1-s[1]/prev)*100):0;
+    return '<div class="fn-row"><span class="fn-l">'+s[0]+'</span><div class="fn-tr" aria-hidden="true"><i style="width:'+(s[1]/f.sessions*100)+'%"></i></div><span class="fn-n num">'+s[1]+'</span><span class="fn-p num">'+pct(s[1],f.sessions)+'</span><span class="fn-d">'+(i?(drop>0?'−'+drop+'% vs. el paso anterior':'Sin caída'):'')+'</span></div>'}).join("");
+  var errs=Object.keys(f.form_errors||{}).sort(function(a,b){return f.form_errors[b]-f.form_errors[a]});
+  var refs=Object.keys(f.referrers||{}).sort(function(a,b){return f.referrers[b]-f.referrers[a]});
+  var facts=[
+    ["Conversión",pct(f.ordered,f.sessions),"de las visitas terminó en pedido"],
+    ["Desde el celular",pct(f.mobile,f.sessions),"de las visitas"+(f.mobile?" · convierte "+pct(f.mobile_ordered,f.mobile):"")],
+    ["Tiempo de checkout",f.median_checkout_min==null?"—":f.median_checkout_min<1?"Menos de 1 min":"~"+Math.round(f.median_checkout_min)+" min","Mediana, del checkout al pedido enviado"],
+    ["Campo con más errores",errs.length?(FIELD_NAME[errs[0]]||errs[0]):"Ninguno",errs.length?f.form_errors[errs[0]]+(f.form_errors[errs[0]]===1?" vez":" veces"):"Nadie se trabó en el formulario"],
+    ["De dónde llegan",refs.length?refs[0]:"—",refs.slice(0,3).map(function(k){return k+" "+f.referrers[k]}).join(" · ")]];
+  return wrap('<div class="fn">'+rows+'</div><dl class="facts fn-facts">'+facts.map(function(x){return '<div><dt>'+x[0]+'</dt><dd>'+esc(x[1])+'</dd><span>'+esc(x[2])+'</span></div>'}).join("")+'</dl>');
 }
 
 // ═══════════ GASTOS ═══════════
