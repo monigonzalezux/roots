@@ -1,0 +1,7 @@
+.DS_Store
+.netlify/
+node_modules/
+# real keys and URLs, kept on this computer only
+local/
+store/config.js
+panel/config.js
