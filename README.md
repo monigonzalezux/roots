@@ -1,52 +1,81 @@
-# Roots: store + owners' panel
+# Roots: storefront + owners' back office
 
-Two static sites that share one Supabase database.
+**A live online store and the order panel behind it, for a women-owned freeze-dried fruit brand in Costa Rica.**
 
-| Folder | What it is | Who uses it |
-|---|---|---|
-| `store/` | The storefront. Checkout saves the order and the SINPE receipt to Supabase. | Customers |
-| `panel/` | Roots Pedidos. Orders show up live; owners log in with email and password. | Owners only |
-| `supabase/schema.sql` | Tables, access rules and the functions both sites call. | Run once |
-| `source/` | The original design-canvas storefront and Claude-artifact panel these were built from. | Reference |
-| `tools/` | `build_store.py` rebuilds `store/index.html` from `source/storefront.dc.html`. | Developers |
+[Live store](https://roots-tienda.netlify.app) · Owners' panel (login only) · [Setup guide](docs/SETUP.md)
 
-## How orders flow
+![The Roots storefront](docs/img/store-home.jpg)
 
-1. At **Continuar al pago**, the store asks the database for the next order number (`RTS-1001`, `RTS-1002`, ...), so the customer can write it in the SINPE detail.
-2. At **Enviar pedido**, the store sends the customer's details, cart and receipt image to `place_order()`. The database recalculates prices, volume discounts, the GAM zone and shipping itself, so a customer can't change the total.
-3. The order appears in the panel as **Pago por verificar** within seconds.
-4. When an owner confirms the payment, the database takes the bags out of inventory in the same step. Cancelling or rejecting a paid order puts them back.
+> The interface is in Spanish (Costa Rican *voseo*), because that's who uses it.
+> Screenshots of the panel use sample data, not the business's real figures.
 
-## One-time setup
+---
 
-### 1. Supabase
-1. Create a project at supabase.com (the Free plan is enough to start).
-2. **SQL Editor → New query**: paste all of `supabase/schema.sql`, then **Run**. Then do the same with `supabase/002-manual-orders.sql` (manual orders) `supabase/003-business-and-expenses.sql` (business sales, expenses, and who changed what) and `supabase/004-activity-log.sql` (the activity log in Ajustes).
-   To load the owners' spreadsheet once: `python3 tools/import_excel.py "<file>.xlsx" local/005-import-excel.sql`, then run that file. It checks its monthly totals against the sheet's SUMMARY, refuses to run twice, and doesn't move inventory.
-3. **Authentication → Sign In / Providers**: turn **off** "Allow new users to sign up". Owners are invited instead.
-4. **Authentication → URL Configuration**: set **Site URL** to the panel's address, for example `https://roots-panel.netlify.app`.
-5. For each owner:
-   - **Authentication → Users → Invite user**: their email. They'll get a link that opens the panel to create their password.
-   - **SQL Editor**: `insert into public.owners (email) values ('their@email.com');`
-6. **Project Settings → API**: copy `config.example.js` to `config.js` in both `store/` and `panel/`, then fill in the **Project URL** and the **anon / publishable** key. Never use the `service_role` or secret key in these files. `config.js` is kept out of git; deploy from a folder that has it.
+## The problem
 
-### 2. Netlify
-Deploy `store/` and `panel/` as two separate sites. Each folder is ready to deploy as-is, with no build step.
+Roots sells freeze-dried mango, strawberry and pineapple in two sizes, to people directly (Instagram, WhatsApp, an online store) and wholesale to 13 shops. Before this project:
 
-### 3. First login
-An owner opens the panel, logs in, and goes to **Ajustes** to set the SINPE number and name, shipping rates, costs and starting stock. The store reads the SINPE details and shipping rates from there.
+- **Orders lived in a spreadsheet** typed by hand: one tab for direct sales, one for shops, a summary tab with formulas.
+- **The store was a design prototype.** Checkout looked real, but no order ever reached the business.
+- **Payments are by SINPE Móvil** (Costa Rica's instant bank transfer), so every order needs a person to check the bank app and match a screenshot to an amount.
+- **The owners needed to see direct and wholesale sales separately**, by flavor and by shop, and track expenses next to them.
 
-### 4. Google Sheet copy (optional)
-Orders are also written to the tab **Pedidos tienda** in the owners' sheet: one row per order, updated when its status changes in the panel. Edits in the sheet don't go back to the panel.
-1. Go to script.google.com → **New project**, paste `sheets/Code.gs`, and save.
-2. Select `authorize` → **Run** and allow access. This creates the tab.
-3. **Deploy → New deployment → Web app**: Execute as **Me**, Who has access **Anyone**. Copy the `…/exec` URL.
-4. In `supabase/sheet-sync.sql`, replace `PASTE_WEB_APP_URL_HERE` with that URL, then run it in the Supabase SQL Editor.
+## What I built
 
-## Removing an owner
-Delete their row: `delete from public.owners where email = '...';`, and remove the user under **Authentication → Users**.
+### 1. A store that actually takes orders
+Customers fill in their delivery details (province → canton, which decides the shipping zone), get an order number **before paying**, so they can write it in the SINPE transfer note, and upload the receipt. The order lands in the owners' panel within seconds.
 
-## Known limits
-- The GAM canton list is an approximation. Update it in both `zone_of()` in the schema and `GAM` in the store to match the courier's zones.
-- Prices are set in two places: `tier_price()` in the schema, and `SIZES` in the store and panel. Change all of them together.
-- Stock isn't checked at checkout. A sold-out flavor can still be ordered; owners see it when confirming.
+### 2. A back office for the owners
+
+| | |
+|---|---|
+| ![Direct vs. business sales](docs/img/panel-ventas.png) | ![Sales by shop](docs/img/panel-negocios.png) |
+| **Ventas · Todo**: direct vs. wholesale share, and the flavor mix of each channel. | **Ventas · Negocios**: the owners' spreadsheet view, redesigned: bags per shop by flavor, amount owed, market share. |
+| ![Orders](docs/img/panel-pedidos.png) | ![Expenses](docs/img/panel-gastos.png) |
+| **Pedidos**: every order with its status, segmented into direct clients and businesses. | **Gastos**: expenses by category; the owners edit the categories themselves. |
+
+- **Login per owner** (email + password). Only emails on the owners' list get in.
+- **Order flow**: payment to verify → paid → preparing → shipped → delivered. Confirming a payment takes the bags out of inventory; cancelling puts them back.
+- **An activity log**: every change records who made it ("RTS-1050: paid → shipped · Ana").
+- **Manual orders and wholesale deliveries** for sales that don't come through the store.
+
+### 3. Images the owners send customers on WhatsApp
+Each status change generates a shareable image with real product photography and the brand's mascots, the *Froots*. On a phone, one tap opens WhatsApp with the image and a ready-made message.
+
+![Customer status images](docs/img/status-cards.jpg)
+
+### 4. Their history, moved in and checked
+A script turns the owners' spreadsheet into one database load: about 330 past sales, direct and wholesale, March to November. It **checks itself against the spreadsheet's own summary tab**, month by month. That check found 18 sales the owners' summary had silently skipped (a trailing space in the month name broke the formula), about **6% of their direct revenue**.
+
+![Store and panel on a phone](docs/img/mobile.jpg)
+
+---
+
+## Decisions worth explaining
+
+**Prices are calculated in the database, not the browser.** Volume pricing (5+ bags, 10+ bags), the shipping zone and the total are recalculated by a Postgres function when the order is placed. A customer editing the page can't change what they owe.
+
+**The public can do exactly three things.** Row-level security means the store's public key can read the SINPE details, reserve an order number and place an order, and nothing else. It can't read a single order back.
+
+**Inventory moves with the payment, not the order.** Stock comes out when a payment is confirmed, in the same database transaction as the status change, so the two can't disagree. Unpaid or rejected orders never touch stock.
+
+**Colors carry meaning, so they were tested.** Each flavor has a fixed color (pineapple gold, mango amber, strawberry raspberry), checked for color-blind separation and contrast, and always paired with the flavor's name in legends and tables.
+
+**Filters say what they filter.** The sale-type switch (All / Direct / Business) is a prominent segmented control; time ranges are quieter pills underneath. An empty period says so and offers "see all", instead of showing zeros.
+
+**The owners' tools stay theirs.** Shop names, expense categories and wholesale prices are lists they edit in the panel, not values in code. An optional sync also copies each order into their Google Sheet, because that's where they were used to working.
+
+## Stack
+
+| | |
+|---|---|
+| Store | The original design (a Claude Design canvas) served as a static site through a small renderer I wrote for its template format ([`store/dc-lite.js`](store/dc-lite.js)), on React |
+| Panel | Plain HTML/CSS/JS, no build step |
+| Data | Supabase: Postgres, Auth, row-level security, Realtime ([`supabase/`](supabase/)) |
+| Hosting | Netlify, deployed from GitHub on every push; keys come from environment variables |
+| Extras | Google Apps Script sheet sync ([`sheets/Code.gs`](sheets/Code.gs)); spreadsheet importer ([`tools/import_excel.py`](tools/import_excel.py)) |
+
+Designed and built with Claude (Claude Design for the storefront, Claude Code for the build).
+
+## Run it yourself
+See the [setup guide](docs/SETUP.md): one Supabase project, four SQL files, two Netlify sites.
