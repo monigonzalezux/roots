@@ -765,6 +765,15 @@ textarea.inp{height:auto;min-height:92px;padding:13px 15px;resize:vertical;line-
 @media (prefers-reduced-motion:reduce){.confetti{display:none}}
 .dl-tip{font-size:13px;color:var(--mute)}
 
+/* cart drawer: added confirmation + recos */
+.ca-added{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:#EEF3E2;color:var(--musgo,#4A4A1F);font-size:14px;margin-bottom:6px;animation:caIn .35s ease both}
+.ca-added .okc{flex:none;width:22px;height:22px;border-radius:50%;background:var(--lima);display:grid;place-items:center}
+.ca-added .okc svg{width:14px;height:14px;fill:none;stroke:var(--musgo);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+@keyframes caIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.ca-added{animation:none}}
+.ca-more{margin-top:6px;display:grid;gap:12px}
+.ca-more .ad-h{margin:0}
+
 </style>
 </helmet>
 <div class="app" style="font-family: var(--sans); color: #515125; background: #EDE6D6">
@@ -1080,7 +1089,7 @@ textarea.inp{height:auto;min-height:92px;padding:13px 15px;resize:vertical;line-
 <img src="/_blob/56b5a2658bcc6847ca2ea03a077d7977" alt="" aria-hidden="true">
 <b style="font-size: 17px">¿Te quedó alguna duda?</b>
 <span style="color: #5C5A43; font-size: 15px">Escribinos o llamanos, con gusto te ayudamos.</span>
-<a href="tel:+50671126437">+506 7112-6437</a>
+<a href="https://wa.me/50672101411" target="_blank" rel="noopener">WhatsApp +506 7210-1411</a>
 <a href="https://www.instagram.com/roots.costarica/" target="_blank" rel="noopener">@roots.costarica</a>
 </div>
 </div>
@@ -1329,7 +1338,7 @@ textarea.inp{height:auto;min-height:92px;padding:13px 15px;resize:vertical;line-
 </sc-for>
 </ul>
 </section>
-<p class="note">Direcciones y horarios de cada tienda por confirmar. ¿Tenés una tienda y querés vender Roots? Escribinos al +506 7112-6437.</p>
+<p class="note">Direcciones y horarios de cada tienda por confirmar. ¿Tenés una tienda y querés vender Roots? Escribinos al +506 7210-1411.</p>
 </div>
 </div>
 </div>
@@ -1631,7 +1640,7 @@ textarea.inp{height:auto;min-height:92px;padding:13px 15px;resize:vertical;line-
 <li><a href="#">Privacidad y términos</a> <span class="ph-tag">· por confirmar</span></li>
 </ul></div>
 <div><h4>Contacto</h4><ul>
-<li><a href="tel:+50671126437">+506 7112-6437</a></li>
+<li><a href="https://wa.me/50672101411" target="_blank" rel="noopener">WhatsApp +506 7210-1411</a></li>
 <li><a href="https://www.instagram.com/roots.costarica/" target="_blank" rel="noopener">Instagram @roots.costarica</a></li>
 <li><a href="https://www.tiktok.com/@roots.costarica" target="_blank" rel="noopener">TikTok @roots.costarica</a> <span class="ph-tag">· por confirmar</span></li>
 <li><span style="color: #E2DBC8; font-size: 15px">San Rafael de La Unión, Cartago</span></li>
@@ -1665,6 +1674,9 @@ textarea.inp{height:auto;min-height:92px;padding:13px 15px;resize:vertical;line-
 </div>
 </sc-if>
 <div class="dbody">
+<sc-if value="{{justAdded}}" hint-placeholder-val="{{ false }}">
+<div class="ca-added" role="status"><span class="okc" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span><span><b>{{added.name}}</b> agregado</span></div>
+</sc-if>
 <sc-for list="{{cartItems}}" as="c" hint-placeholder-count="2">
 <div class="citem">
 <div class="th {{c.thCls}}"><img src="{{c.img}}" alt=""></div>
@@ -1683,6 +1695,24 @@ textarea.inp{height:auto;min-height:92px;padding:13px 15px;resize:vertical;line-
 <span class="lt">{{c.lineLabel}}</span>
 </div>
 </sc-for>
+<sc-if value="{{hasRecs}}" hint-placeholder-val="{{ true }}">
+<div class="ca-more">
+<h3 class="ad-h">Probá más sabores</h3>
+<div class="ad-recs">
+<sc-for list="{{recs}}" as="r" hint-placeholder-count="3">
+<div class="ad-rec">
+<button type="button" class="th {{r.thCls}}" onClick="{{r.open}}" aria-label="{{r.openLabel}}"><img src="{{r.img}}" alt=""></button>
+<div><b>{{r.name}}</b><span>{{r.sub}} · {{r.priceLabel}}</span></div>
+<button type="button" class="addmini" onClick="{{r.add}}" aria-label="{{r.addLabel}}"><svg class="ico ico-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+</div>
+</sc-for>
+</div>
+<div class="ad-pack">
+<img src="/_blob/6f4675d37e68ef68590ae6a009b6658c" alt="" aria-hidden="true">
+<div><b>¿Y si sumás más? Armá tu pack.</b><span>Mezclá sabores; desde 5 Grandes pagás ₡3,500 c/u.</span><button type="button" class="link" onClick="{{goPackFromAdded}}">Armar mi pack</button></div>
+</div>
+</div>
+</sc-if>
 </div>
 <div class="dfoot">
 <div class="row"><span class="muted">Subtotal</span><span>{{subtotalLabel}}</span></div>
@@ -1701,46 +1731,6 @@ textarea.inp{height:auto;min-height:92px;padding:13px 15px;resize:vertical;line-
 <div class="toast" role="status"><img src="{{toastImg}}" alt=""><span>{{toast}}</span><button type="button" class="btn btn-h" onClick="{{openCart}}">Ver carrito</button></div>
 </sc-if>
 
-<sc-if value="{{addedOpen}}" hint-placeholder-val="{{ false }}">
-<button type="button" class="scrim" onClick="{{closeAdded}}" aria-label="Cerrar" tabindex="-1"></button>
-<div class="drawer added" role="dialog" aria-modal="true" aria-labelledby="added-title" onKeyDown="{{addedKey}}">
-<div class="dhead">
-<h2 id="added-title"><span class="okc" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>¡Agregado!</h2>
-<button type="button" class="iconbtn" id="added-close" onClick="{{closeAdded}}" aria-label="Cerrar"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-</div>
-<div class="dbody">
-<div class="ad-item">
-<div class="th {{added.thCls}}"><img src="{{added.img}}" alt=""></div>
-<div><b>{{added.name}}</b><span>{{added.sub}}</span></div>
-</div>
-<div class="ad-ctas">
-<button type="button" class="btn btn-m btn-block" onClick="{{openCart}}">Ir al carrito · {{bagsLabel}}</button>
-<button type="button" class="btn btn-o btn-block" onClick="{{goCheckout}}">Pagar ahora · {{subtotalLabel}}</button>
-</div>
-<div class="ad-sum">
-<div class="row"><span class="muted">En tu carrito</span><span>{{bagsLabel}}</span></div>
-<div class="row"><span class="muted">Subtotal</span><b>{{subtotalLabel}}</b></div>
-<sc-if value="{{hasSaving}}" hint-placeholder-val="{{ false }}"><div class="row save-row"><span>Ahorro por volumen</span><span>{{savingLabel}}</span></div></sc-if>
-<sc-for list="{{nudges}}" as="n" hint-placeholder-count="1"><p class="ad-nudge">{{n.text}}</p></sc-for>
-</div>
-<div class="ad-pack">
-<img src="/_blob/6f4675d37e68ef68590ae6a009b6658c" alt="" aria-hidden="true">
-<div><b>¿Y si sumás más? Armá tu pack.</b><span>Mezclá sabores; desde 5 Grandes pagás ₡3,500 c/u.</span><button type="button" class="link" onClick="{{goPackFromAdded}}">Armar mi pack</button></div>
-</div>
-<h3 class="ad-h">Probá más sabores</h3>
-<div class="ad-recs">
-<sc-for list="{{recs}}" as="r" hint-placeholder-count="3">
-<div class="ad-rec">
-<button type="button" class="th {{r.thCls}}" onClick="{{r.open}}" aria-label="{{r.openLabel}}"><img src="{{r.img}}" alt=""></button>
-<div><b>{{r.name}}</b><span>{{r.sub}} · {{r.priceLabel}}</span></div>
-<button type="button" class="addmini" onClick="{{r.add}}" aria-label="{{r.addLabel}}"><svg class="ico ico-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
-</div>
-</sc-for>
-</div>
-<button type="button" class="link" style="justify-content: center" onClick="{{closeAdded}}">Seguir comprando</button>
-</div>
-</div>
-</sc-if>
 <p class="sr" aria-live="polite">{{live}}</p>
 <p class="proto" aria-hidden="true"><i></i>Prototipo · datos de ejemplo</p>
 </div>
@@ -1979,17 +1969,11 @@ class Component extends DCLogic {
 
   // cart
   notify(msg, img, info) {
-    var self = this, wide = false;
-    try { wide = window.innerWidth > 760; } catch (e) {}
-    if (wide && info) {
-      try { document.body.style.overflow = 'hidden'; } catch (e) {}
-      this.setState({ bump: true, added: info, addedOpen: true, cartOpen: false, toast: '', live: msg }, function () {
-        self.later('focus', function () { var b = document.getElementById('added-close'); if (b) b.focus(); }, 40);
-      });
-    } else {
-      this.setState({ bump: true, toast: msg, toastImg: img, live: msg });
-      this.later('toast', function () { self.setState({ toast: '' }); }, 3200);
-    }
+    var self = this;
+    try { document.body.style.overflow = 'hidden'; } catch (e) {}
+    this.setState({ bump: true, added: info || null, justAdded: !!info, cartOpen: true, addedOpen: false, menuOpen: false, toast: '', live: msg }, function () {
+      self.later('focus', function () { var b = document.getElementById('drawer-close'); if (b) b.focus(); }, 40);
+    });
     this.later('bump', function () { self.setState({ bump: false }); }, 520);
   }
   closeAdded() { try { document.body.style.overflow = ''; } catch (e) {} this.setState({ addedOpen: false }); }
@@ -2036,11 +2020,11 @@ class Component extends DCLogic {
   openCart() {
     var self = this;
     try { document.body.style.overflow = 'hidden'; } catch (e) {}
-    this.setState({ cartOpen: true, addedOpen: false, menuOpen: false, toast: '' }, function () {
+    this.setState({ cartOpen: true, justAdded: false, addedOpen: false, menuOpen: false, toast: '' }, function () {
       self.later('focus', function () { var b = document.getElementById('drawer-close'); if (b) b.focus(); }, 40);
     });
   }
-  closeCart() { try { document.body.style.overflow = ''; } catch (e) {} this.setState({ cartOpen: false }); }
+  closeCart() { try { document.body.style.overflow = ''; } catch (e) {} this.setState({ cartOpen: false, justAdded: false }); }
 
   totals() {
     var s = this.state, units = { g: 0, m: 0 };
@@ -2132,7 +2116,7 @@ class Component extends DCLogic {
         notes: (f.notes || '').trim(), hasNotes: !!(f.notes || '').trim(),
         receiptUrl: self.state.receipt ? self.state.receipt.url : '', hasReceiptImg: !!self.state.receipt,
         invoiceUrl: '', invoiceName: 'Roots-' + self.state.orderRef + '.png', hasInvoice: false, noInvoice: true,
-        waLink: 'https://wa.me/50671126437?text=' + encodeURIComponent('¡Hola Roots! Mi pedido es ' + self.state.orderRef + '.')
+        waLink: 'https://wa.me/50672101411?text=' + encodeURIComponent('¡Hola Roots! Mi pedido es ' + self.state.orderRef + '.')
       };
       // Same shape the owners' panel reads (orders/<id>); in production this is saved to the database.
       order.record = {
@@ -2201,7 +2185,7 @@ class Component extends DCLogic {
       if (group) { var gw = 520, gh = gw * group.height / group.width; x.drawImage(group, (W - gw) / 2, y - 30, gw, gh); y += gh - 10; }
       x.textAlign = 'center'; x.fillStyle = MUTE; x.font = '600 22px ' + SANS;
       x.fillText('Guardá esta imagen. Si algo pasa, escribinos con tu número de pedido.', W / 2, y + 10);
-      x.fillStyle = MUS; x.font = '800 22px ' + SANS; x.fillText('+506 7112-6437 · @roots.costarica', W / 2, y + 48);
+      x.fillStyle = MUS; x.font = '800 22px ' + SANS; x.fillText('WhatsApp +506 7210-1411 · @roots.costarica', W / 2, y + 48);
       return y + 48;
       };
       var endY = draw(3200); draw(Math.ceil(endY + 100));
@@ -2366,6 +2350,7 @@ class Component extends DCLogic {
     var recs = recPool.filter(function (c) { return !inCart[c.key]; }).sort(function (a, b) { return (a.isMini === (lastSize === 'm') ? 0 : 1) - (b.isMini === (lastSize === 'm') ? 0 : 1); }).slice(0, 3);
     return {
       recs: recs.map(function (c) { return Object.assign({}, c, { thCls: '' }); }),
+      hasRecs: recs.length > 0, justAdded: !!s.justAdded,
       addedOpen: s.addedOpen, added: s.added || { name: '', sub: '', img: IMG.pkMango, thCls: '' },
       closeAdded: function () { self.closeAdded(); },
       addedKey: function (e) { if (e.key === 'Escape') self.closeAdded(); },
