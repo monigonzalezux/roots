@@ -79,4 +79,4 @@ A script turns the owners' spreadsheet into one database load: about 330 past sa
 Designed and built with Claude (Claude Design for the storefront, Claude Code for the build).
 
 ## Run it yourself
-See the [setup guide](docs/SETUP.md): one Supabase project, four SQL files, two Netlify sites.
+See the [setup guide](docs/SETUP.md): one Supabase project, five SQL files, two Netlify sites.
